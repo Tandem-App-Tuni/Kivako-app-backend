@@ -17,6 +17,9 @@ script:
   - docker-compose start
   - docker-compose run test
 
+after_sucess:
+  - docker-compose run app sh coveragereport.sh
+
 #language: node_js
 #node_js: node
 #cache: npm
