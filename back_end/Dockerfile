@@ -4,7 +4,9 @@ FROM ubuntu:18.04
 #ADD package.json /usr/app/
 RUN apt-get update && apt-get -qq -y install curl
 
+RUN apt-get install git -y
 
+#ENV NODE_VERSION=10.16.3
 ENV NODE_VERSION=9.9.0
 RUN apt-get install -y curl
 RUN curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | bash

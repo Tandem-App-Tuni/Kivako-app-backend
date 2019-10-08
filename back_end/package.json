@@ -1,5 +1,5 @@
 {
-  "name": "chatapp",
+  "name": "kivako-app-backend",
   "version": "1.0.0",
   "description": "Use websocket in application.",
   "main": "index.js",
@@ -29,6 +29,7 @@
     "body-parser": "^1.18.2",
     "cors": "^2.8.4",
     "express": "^4.16.2",
+    "flatted": "^2.0.1",
     "immutable": "^3.8.2",
     "lodash": "^4.17.4",
     "moment": "^2.19.3",
@@ -44,6 +45,6 @@
     "eslint": "^4.9.0",
     "nodemon": "^1.12.1"
   },
-  "author": "toan@tabvn.com",
-  "license": "ISC"
+  "author": "Kivako Tandem Team ",
+  "license": "MIT"
 }
