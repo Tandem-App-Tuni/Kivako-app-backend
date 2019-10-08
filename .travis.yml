@@ -13,12 +13,12 @@ before_install:
   - sudo mv docker-compose /usr/local/bin
 
 script:
-  - docker-compose up --build -d
-  - docker-compose start
-  - docker-compose run test
+#  - docker-compose up --build -d
+#  - docker-compose start
+#  - docker-compose run test
 
 after_sucess:
-  - docker-compose run app sh coveragereport.sh
+#  - docker-compose run app sh coveragereport.sh
 
 #language: node_js
 #node_js: node
