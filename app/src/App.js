@@ -6,16 +6,17 @@ import {
 } from "react-router-dom";
 
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
-import Color from './components/constant/Colors'
+import {Colors} from './components/constant/index'
 
 import './App.css';
 import LoginPage from './containers/LoginPage'
 import EditProfilePage from './containers/EditProfilePage'
+import PreferencePage from './containers/PreferencePage'
 
 const theme = createMuiTheme({
   palette: {
     primary: {
-        main: Color.mainColor
+        main: Colors.mainColor
       }
     }
   },
@@ -31,6 +32,9 @@ function App() {
         </Route>
         <Route exact path="/edit-profile">
             <EditProfilePage />
+        </Route>
+        <Route exact path="/edit-preference">
+            <PreferencePage />
         </Route>
       </Switch>
     </Router>

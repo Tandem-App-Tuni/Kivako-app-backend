@@ -13,6 +13,7 @@ import MenuIcon from '@material-ui/icons/Menu';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
+import { Link } from "react-router-dom";
 
 import ForumIcon from '@material-ui/icons/Forum';
 import CollectionsBookmarkIcon from '@material-ui/icons/CollectionsBookmark';
@@ -70,7 +71,8 @@ function ResponsiveDrawer(props) {
       <Divider />
       <List>
         {['Conversations', 'Moodle', 'Preference', 'Language matches', 'Log out'].map((text, index) => (
-          <ListItem button key={text}>
+          <ListItem button key={text} component={Link} 
+          to={index == 2 && "/edit-preference"}>
           {index === 0 &&
             <ListItemIcon><ForumIcon/></ListItemIcon>
            }
@@ -109,7 +111,7 @@ function ResponsiveDrawer(props) {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap>
-            Responsive drawer
+            {props.title}
           </Typography>
         </Toolbar>
       </AppBar>
