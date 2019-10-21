@@ -27,12 +27,8 @@ var userSchema2 = new mongoose.Schema({
       type: String,
       required: true
   },
-  cityOne: {
-      type: String,
-      required: true
-  },
-  cityTwo: {
-      type: String
+  cities: {
+      type: [String]
   },
   descriptionText: {
       type: String,
@@ -47,12 +43,16 @@ var userSchema2 = new mongoose.Schema({
       required: true
   },
   userIsActivie:{
-      type: Boolean
+      type: Boolean,
+      required: true
   },
   lastUserAccess:{ 
       type: Date, 
       default: Date.now 
-  }
+  },
+  profileImg:{ 
+      type:String
+  },
 
 });
 
