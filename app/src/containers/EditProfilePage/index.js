@@ -17,6 +17,24 @@ import Container from '@material-ui/core/Container';
 import PhotoCamera from '@material-ui/icons/PhotoCamera';
 import IconButton from '@material-ui/core/IconButton';
 
+import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+import Chip from '@material-ui/core/Chip';
+
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+  PaperProps: {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+      width: 250,
+    },
+  },
+};
+
 const useStyles = theme => ({
   '@global': {
     body: {
@@ -60,12 +78,40 @@ const useStyles = theme => ({
     }
   }
   ,
+//languages
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 120,
+    //maxWidth: 300,
+    width: '100%'
+  },
+  chips: {
+    display: 'flex',
+    flexWrap: 'wrap',
+  },
+  chip: {
+    margin: 2,
+  },
+  noLabel: {
+    marginTop: theme.spacing(3),
+  }
   
 });
 
+const languages = [
+  "English",
+  "Finnish",
+  "Swedish",
+  "French",
+  "German"
+];
+
 class EditProfilePage extends Component {
   state = {
-    image: ''
+    image: '',
+    teachLanguages:[],
+    studyLanguages: []
+
 }
 
 onImageChange = (event) => {
@@ -76,6 +122,53 @@ onImageChange = (event) => {
     });
   }
 }
+
+onSaveButtonClicked = () =>{
+  const url = new URL("http://localhost:3000/users/add")
+  fetch(url, {
+  method: 'POST',
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    firstName: '',
+    secondParam: 'yourOtherValue',
+  })
+}).then((response) => response.json())
+.then((responseJson) => {
+  console.log(responseJson);
+})
+.catch((error) => {
+  console.error(error);
+});
+}
+
+handleChangeTeach = event => {
+  const { options } = event.target;
+
+     var value= (event.target.value);
+    
+  this.setState(
+    {
+      teachLanguages: value
+        }
+    )
+};
+
+handleChangeStudy = event => {
+  const { options } = event.target;
+
+     var value= (event.target.value);
+    
+  this.setState(
+    {
+      studyLanguages: value
+        }
+    )
+};
+
+
 
 render() {
   const { classes } = this.props;
@@ -126,6 +219,7 @@ render() {
                   autoComplete="lname"
                 />
               </Grid>
+
               <Grid item xs={12}>
                 <TextField
                   variant="outlined"
@@ -135,21 +229,33 @@ render() {
                   label="Email Address"
                   name="email"
                   autoComplete="email"
-                  disabled = {true}
+                  // disabled = {true}
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid item xs={12} sm={6}>
                 <TextField
                   variant="outlined"
                   // required
                   fullWidth
                   id="city"
-                  label="City"
+                  label="City 1"
                   name="city"
                   autoComplete="city"
                 />
-              </Grid>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                <TextField
+                  variant="outlined"
+                  // required
+                  fullWidth
+                  id="city"
+                  label="City 2"
+                  name="city"
+                  autoComplete="city"
+                />
+                </Grid>
+
               <Grid item xs={12}>
               <TextField
               variant="outlined"
@@ -164,13 +270,74 @@ render() {
       />
               </Grid>
              
+              <Grid item xs={12}>
+
+
+              <FormControl className={classes.formControl}>
+        <InputLabel htmlFor="select-multiple-chip">To teach</InputLabel>
+        <Select
+          multiple
+          value={this.state.teachLanguages}
+          onChange={this.handleChangeTeach}
+          input={<Input id="select-multiple-chip" />}
+          renderValue={selected => (
+            <div className={classes.chips}>
+              {selected.map(value => (
+                <Chip key={value} label={value} className={classes.chip} />
+              ))}
+            </div>
+          )}
+          MenuProps={MenuProps}
+        >
+          {languages.map(name => (
+            <MenuItem key={name} value={name}>
+              {name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+</Grid>
+
+<Grid item xs={12}>
+
+
+              <FormControl className={classes.formControl}>
+        <InputLabel htmlFor="select-multiple-chip">To study</InputLabel>
+        <Select
+          multiple
+          value={this.state.studyLanguages}
+          onChange={this.handleChangeStudy}
+          input={<Input id="select-multiple-chip" />}
+          renderValue={selected => (
+            <div className={classes.chips}>
+              {selected.map(value => (
+                <Chip key={value} label={value} className={classes.chip} />
+              ))}
+            </div>
+          )}
+          MenuProps={MenuProps}
+        >
+          {languages.map(name => (
+            <MenuItem key={name} value={name}>
+              {name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+</Grid>
+
             </Grid>
+
+
+
+
             <Button
-              type="submit"
+              //type="submit"
               fullWidth
               variant="contained"
               color="primary"
               className={classes.submit}
+              onClick={this.onSaveButtonClicked}
             >
               Save
             </Button>

@@ -72,7 +72,7 @@ function ResponsiveDrawer(props) {
       <List>
         {['Conversations', 'Moodle', 'Preference', 'Language matches', 'Log out'].map((text, index) => (
           <ListItem button key={text} component={Link} 
-          to={index == 2 && "/edit-preference"}>
+          to={"/edit-preference"}>
           {index === 0 &&
             <ListItemIcon><ForumIcon/></ListItemIcon>
            }
