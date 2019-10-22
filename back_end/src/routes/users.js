@@ -112,6 +112,21 @@ router.route('/:id').get((req, res) => {
     .catch(err => res.status(400).json('Error: ' + err));
 });
 
+// Get one user by email
+// Case user is already register, return true. Otherwise, return false.
+router.route('/search/:email').get((req, res) => {
+  User.findOne({email: req.params.email })
+    .then(users => {
+      if (users == null){
+        res.json(false)
+      }else{
+        res.json(true)
+      }
+    })
+    .catch(err => res.status(400).json('Error: ' + err));
+});
+
+
 // Update user access date
 router.route('/updateActivity/:id').post((req, res) => {
   User.findById(req.params.id)
