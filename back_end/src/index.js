@@ -19,8 +19,8 @@ app.use('/public', express.static('public'));
 const URL = "mongodb://localhost:27017/kivakodb";
 //const uri = process.env.ATLAS_URI;
 
-mongoose.connect(URL, { useNewUrlParser: true, useCreateIndex: true }
-);
+mongoose.connect(URL, { useNewUrlParser: true, useCreateIndex: true,useUnifiedTopology: true, });
+
 /*
 try {
 	await mongoose.connect(URL, { useNewUrlParser: true, useCreateIndex: true });
