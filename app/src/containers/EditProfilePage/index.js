@@ -106,25 +106,38 @@ const languages = [
   "German"
 ];
 
+const cities = [
+  'Tampere',
+  'Helsinki',
+  'Espoo',
+  'Vantaa'
+]
+
 class EditProfilePage extends Component {
   state = {
-    image: '',
-    teachLanguages:[],
-    studyLanguages: []
-
-}
+    profileImg: null,
+    languagesToTeach:[],
+    languagesToLearn: [],
+    firstName : '',
+      lastName : '',
+      email : '',
+      cities : [],
+      descriptionText : ''
+  }
 
 onImageChange = (event) => {
   if (event.target.files.length > 0){
     const url = URL.createObjectURL(event.target.files[0]);
     this.setState({
-        image: url
+      profileImg: event.target.files[0],
+      profileImgURL: url
     });
   }
 }
 
 onSaveButtonClicked = () =>{
-  const url = new URL("http://localhost:3000/users/add")
+  const url = new URL(window.location.protocol + '//' + window.location.hostname + ":3000/users/add")
+  console.log(url)
   fetch(url, {
   method: 'POST',
   headers: {
@@ -132,9 +145,40 @@ onSaveButtonClicked = () =>{
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
-    firstName: '',
-    secondParam: 'yourOtherValue',
+    languagesToTeach: this.state.languagesToTeach,
+    languagesToLearn: this.state.languagesToLearn,
+    firstName : this.state.firstName,
+      lastName : this.state.lastName,
+      email : this.state.email,
+      cities : this.state.cities,
+      descriptionText : this.state.descriptionText,
+      userIsActivie: true
   })
+}).then((response) => response.json())
+.then((responseJson) => {
+  console.log(responseJson);
+  this.uploadPhoto(responseJson.userCreated._id)
+})
+.catch((error) => {
+  console.error(error);
+});
+
+
+//this.uploadPhoto("5daf39de47435bd5d59687c6");
+}
+
+uploadPhoto = (userId) =>{
+  const url = new URL(window.location.protocol + '//' + window.location.hostname + ":3000/users/updatePicture/"+userId)
+  console.log(url)
+  var formData = new FormData()
+ formData.append('profileImg', this.state.profileImg);
+ console.log(formData)
+  fetch(url, {
+  method: 'POST',
+  // headers: {
+  //       'Content-Type': 'multipart/form-data',
+  //     },
+  body: formData
 }).then((response) => response.json())
 .then((responseJson) => {
   console.log(responseJson);
@@ -151,7 +195,7 @@ handleChangeTeach = event => {
     
   this.setState(
     {
-      teachLanguages: value
+      languagesToTeach: value
         }
     )
 };
@@ -163,11 +207,68 @@ handleChangeStudy = event => {
     
   this.setState(
     {
-      studyLanguages: value
+      languagesToLearn: value
         }
     )
 };
 
+handleChangeFirstName = event => {
+  
+     var value= (event.target.value);
+    
+  this.setState(
+    {
+      firstName: value
+        }
+    )
+};
+
+handleChangeLastName = event => {
+  
+  var value= (event.target.value);
+ 
+this.setState(
+ {
+   lastName: value
+     }
+ )
+};
+
+handleChangeEmail = event => {
+  
+  var value= (event.target.value);
+ 
+this.setState(
+ {
+   email: value
+     }
+ )
+};
+
+handleChangeCities = event => {
+  
+  var value= (event.target.value);
+ if (value.length > 2) {
+
+ }else{
+this.setState(
+ {
+   cities: value
+  }
+ )
+}
+};
+
+handleChangeIntroduction = event => {
+  
+  var value= (event.target.value);
+ 
+this.setState(
+ {
+   descriptionText: value
+  }
+ )
+};
 
 
 render() {
@@ -179,7 +280,7 @@ render() {
           <Container component="main" maxWidth="xs">
         <CssBaseline />
         <div className={classes.paper}>
-          <Avatar className={classes.avatar} src={this.state.image}>
+          <Avatar className={classes.avatar} src={this.state.profileImgURL}>
           
           </Avatar>
           <div className={classes.uploadBtnWrapper}>
@@ -206,6 +307,7 @@ render() {
                   id="firstName"
                   label="First Name"
                   autoFocus
+                  onChange =  {this.handleChangeFirstName}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -217,6 +319,7 @@ render() {
                   label="Last Name"
                   name="lastName"
                   autoComplete="lname"
+                  onChange =  {this.handleChangeLastName}
                 />
               </Grid>
 
@@ -229,32 +332,38 @@ render() {
                   label="Email Address"
                   name="email"
                   autoComplete="email"
+                  onChange =  {this.handleChangeEmail}
                   // disabled = {true}
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  variant="outlined"
-                  // required
-                  fullWidth
-                  id="city"
-                  label="City 1"
-                  name="city"
-                  autoComplete="city"
-                />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                <TextField
-                  variant="outlined"
-                  // required
-                  fullWidth
-                  id="city"
-                  label="City 2"
-                  name="city"
-                  autoComplete="city"
-                />
-                </Grid>
+              <Grid item xs={12}>
+
+
+              <FormControl className={classes.formControl}>
+        <InputLabel htmlFor="select-multiple-chip">Cities</InputLabel>
+        <Select
+          multiple
+          value={this.state.cities}
+          onChange={this.handleChangeCities}
+          input={<Input id="select-multiple-chip" />}
+          renderValue={selected => (
+            <div className={classes.chips}>
+              {selected.map(value => (
+                <Chip key={value} label={value} className={classes.chip} />
+              ))}
+            </div>
+          )}
+          MenuProps={MenuProps}
+        >
+          {cities.map(name => (
+            <MenuItem key={name} value={name}>
+              {name}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+</Grid>
 
               <Grid item xs={12}>
               <TextField
@@ -267,6 +376,7 @@ render() {
         defaultValue=""
         className={classes.textField}
         margin="normal"
+        onChange =  {this.handleChangeIntroduction}
       />
               </Grid>
              
@@ -277,7 +387,7 @@ render() {
         <InputLabel htmlFor="select-multiple-chip">To teach</InputLabel>
         <Select
           multiple
-          value={this.state.teachLanguages}
+          value={this.state.languagesToTeach}
           onChange={this.handleChangeTeach}
           input={<Input id="select-multiple-chip" />}
           renderValue={selected => (
@@ -305,7 +415,7 @@ render() {
         <InputLabel htmlFor="select-multiple-chip">To study</InputLabel>
         <Select
           multiple
-          value={this.state.studyLanguages}
+          value={this.state.languagesToLearn}
           onChange={this.handleChangeStudy}
           input={<Input id="select-multiple-chip" />}
           renderValue={selected => (
