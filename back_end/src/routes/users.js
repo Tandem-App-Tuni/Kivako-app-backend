@@ -45,7 +45,7 @@ router.post('/add', upload.single('profileImg'), (req, res, next) => {
       descriptionText : req.body.descriptionText,
       languagesToTeach : req.body.languagesToTeach,
       languagesToLearn : req.body.languagesToLearn,
-      userIsActivie : req.body.userIsActivie,
+      userIsActivie : req.body.userIsActivie
       //profileImg: url + '/public/' + req.file.filename
   });
 

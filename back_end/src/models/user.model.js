@@ -1,20 +1,8 @@
 const mongoose = require('mongoose');
 
-const Schema = mongoose.Schema;
+var languageSchema = new mongoose.Schema({ language: String, level: String }, { noId: true });
 
-const userSchema = new Schema({
-  username: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-    minlength: 3
-  },
-}, {
-  timestamps: true,
-});
-
-var userSchema2 = new mongoose.Schema({
+var userSchema = new mongoose.Schema({
   firstName: {
       type: String,
       required: true
@@ -35,11 +23,11 @@ var userSchema2 = new mongoose.Schema({
       required: true
   },
   languagesToTeach: {
-      type: [String],
+      type: [languageSchema], // Format: {"language":"PT", "level": "B2"}
       required: true
   },
   languagesToLearn: {
-      type: [String],
+      type: [languageSchema],
       required: true
   },
   userIsActivie:{
@@ -56,7 +44,7 @@ var userSchema2 = new mongoose.Schema({
 
 });
 
-const User = mongoose.model('User', userSchema2);
+const User = mongoose.model('User', userSchema);
 
 module.exports = User;
 
