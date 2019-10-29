@@ -9,11 +9,15 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000;
 
+
+// initialize middleware
 app.use(cors());
 app.use(express.json());
 app.use(bodyParser.urlencoded({
   extended: false
 }));
+
+
 app.use('/public', express.static('public'));
 
 const URL = "mongodb://localhost:27017/kivakodb";
