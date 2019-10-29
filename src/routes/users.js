@@ -142,6 +142,14 @@ router.route('/updateActivity/:id').post((req, res) => {
     .catch(err => res.status(400).json('Error: ' + err));
 });
 
+/*
+https://blog.slatepeak.com/creating-a-real-time-chat-api-with-node-express-socket-io-and-mongodb/
+router.get('/testeoi', route.getConversation);
+
+exports.getConversations = function(req, res, next) {  
+  return res.status(200).json("teste");
+}
+*/
 
 /*
 // Add new user

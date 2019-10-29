@@ -1,11 +1,13 @@
-# Kivako-App
-[![Build Status](https://travis-ci.com/Tandem-App-Tuni/Kivako-App.svg?branch=master)](https://https://travis-ci.com/Tandem-App-Tuni/Kivako-App)
-[![Coverage Status](https://coveralls.io/repos/github/Tandem-App-Tuni/Kivako-App/badge.svg?branch=master)](https://coveralls.io/github/Tandem-App-Tuni/Kivako-App?branch=master)
+# Commands to run the server
 
-This repository contains the application code.
 
-1. To run app using docker-compose: 
-    - docker-compose up run app
+* 1) Run database locally
+    mongod or sudo mongod
 
-2. To run just the tests using docker-compose:
-    - docker-compose up run test
+    * In case it's not installed, install mongo: https://docs.mongodb.com/v3.2/administration/install-community/
+
+* 2) Run server command
+    cd back_end/src
+    nodemon index
+
+* 3) enjoy

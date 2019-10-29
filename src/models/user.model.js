@@ -1,6 +1,32 @@
 const mongoose = require('mongoose');
 
-var languageSchema = new mongoose.Schema({ language: String, level: String }, { noId: true });
+var languageSchema = new mongoose.Schema({ language: String, level: String, credits: Number }, { noId: true });
+
+var matchSchema = new mongoose.Schema({
+    requester: {
+        type: Number,
+        required: true
+    },
+    recipient: {
+        type: Number,
+        required: true
+    },
+    status: {
+        type: Number,
+        required: true
+    },
+    requestDate: {
+        type: Date
+    },
+    matchBeginningDate:{
+        type: Date
+    },
+    matchEndDate:{
+        type: Date
+    }
+});
+// Status : 1-> Pendente, 2-> Ativo, 3-> Encerrado, 4 -> Encerrado/Bloqueado
+
 
 var userSchema = new mongoose.Schema({
   firstName: {
@@ -41,7 +67,6 @@ var userSchema = new mongoose.Schema({
   profileImg:{ 
       type:String
   },
-
 });
 
 const User = mongoose.model('User', userSchema);
