@@ -1,18 +1,19 @@
 const express = require('express');
 const userService = require('../../services/user');
-const isAuthenticated = require('../../auth/auth')
+const auth = require('../../auth/auth')
 let router = express.Router();
 
-router.get('/' ,userService.getUsers);
 
-router.get('/:id', userService.getUserById);
+router.get('/', auth.isAuthenticated, userService.getUsers);
 
-router.post('/add', userService.createUser);
+router.get('/:id', auth.isAuthenticated, userService.getUserById);
 
-router.put('/:id', userService.updateUser);
+router.post('/add', auth.isAuthenticated, userService.createUser);
 
-router.delete('/:id', userService.deleteUser);
+router.put('/:id', auth.isAuthenticated, userService.updateUser);
 
-router.get('/email/:email', userService.getUserIdWithEmail)
+router.delete('/:id', auth.isAuthenticated, userService.deleteUser);
+
+router.get('/email/:email', auth.isAuthenticated, userService.getUserIdWithEmail)
 
 module.exports = router;

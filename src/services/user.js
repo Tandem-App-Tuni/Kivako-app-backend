@@ -2,8 +2,6 @@
 /********
 * user.js file (services/users)
 ********/
-
-
 const express = require('express');
 const User = require('../models/user');
 
@@ -11,20 +9,14 @@ const User = require('../models/user');
 function getUserIdFromAuthenticatedRequest2(req) {
     const email = req.params.email
 
-    //console.log("aqui");
-    //console.log(email);
-
     let isEmailExists = User.findOne({
         "email": email
     });
-    //console.log("aqui 2");
-    //console.log(isEmailExists._id);
 
     if (isEmailExists) {
         return isEmailExists._id;
     }
 
-    //return '1'; // hardcoding for now, pending authentication implementation
 }
 
 
@@ -270,9 +262,6 @@ const getUserIdWithEmail = async (req, res, next) => { //TODO change function ST
         'test2': test2
     });
 }
-
-
-
 
 module.exports = {
     getUsers: getUsers,
