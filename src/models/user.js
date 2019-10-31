@@ -49,11 +49,11 @@ var userSchema = new mongoose.Schema({
       required: true
   },
   languagesToTeach: {
-      type: [languageSchema], // Format: {"language":"PT", "level": "B2"}
+      type: [languageSchema], // Format: {"language":"PT", "level": "B2", credits: 3}
       required: true
   },
   languagesToLearn: {
-      type: [languageSchema],
+      type: [languageSchema], // Format: {"language":"PT", "level": "B2", credits: 3}
       required: true
   },
   userIsActivie:{
@@ -68,6 +68,7 @@ var userSchema = new mongoose.Schema({
       type:String
   },
 });
+
 
 const User = mongoose.model('User', userSchema);
 

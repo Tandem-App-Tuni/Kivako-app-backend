@@ -44,3 +44,15 @@ app.use('/users', usersRouter);
 app.listen(port, () => {
     console.log(`Server is running on port: ${port}`);
 });
+/*
+
+const server = require('./configs/app')();
+const config = require('./configs/config/config');
+const db = require('./configs/db');
+
+//create the basic server setup 
+server.create(config, db);
+
+//start the server
+server.start();
+*/

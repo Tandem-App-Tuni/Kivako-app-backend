@@ -1,5 +1,5 @@
 const router = require('express').Router();
-let User = require('../models/user.model'),
+let User = require('../models/user'),
     mongoose = require('mongoose');
 
 let express = require('express'),
