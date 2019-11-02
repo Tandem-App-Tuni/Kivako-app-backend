@@ -10,7 +10,8 @@ const session = require('express-session');
 
 //
 const isAuthenticated = async (req, res, next) => {
-    let userlog = true;
+    //let userlog = true;
+    let userlog = req.isAuthenticated();// If testing api use the other variable
 
     if(userlog == true){
         return next();
@@ -26,7 +27,10 @@ const isAuthenticated = async (req, res, next) => {
 const isRequestUserAutheticatedAndValid = async (req, res, next) => {
 
     //MAYBE CHANGE PARAMETERS OF THE API
-    let userlog = true;
+    //let userlog = true;
+    let userlog = req.isAuthenticated();
+
+    console.log(req.session.passport.user.email)
 
     if(userlog == true){
         return next();

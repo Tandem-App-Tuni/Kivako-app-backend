@@ -10,6 +10,7 @@ var passport = require('passport');
 var SamlStrategy = require('passport-saml').Strategy;
 var saml = require('passport-saml');
 var fs = require('fs');
+var favicon = require('serve-favicon');
 
 module.exports = function () {
     let server = express(),
@@ -35,6 +36,7 @@ module.exports = function () {
         server.use(express.urlencoded({extended:false}));
         server.use(cookieParser());
         server.use(express.static(path.join(__dirname,'public')));
+        server.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 
         //server.use(session({secret: 'stuff'})); 
 
@@ -50,16 +52,19 @@ module.exports = function () {
         }));
 
         passport.serializeUser(function(user, done) {
-            console.log("serializing user");
-            console.log(user)
+            //console.log("serializing user");
+            //console.log(user)
             done(null, user);
         });
               
         passport.deserializeUser(function(user, done) {
-            console.log("Deserializing user");
+            //console.log("Deserializing user");
             //console.log(user)
             done(null, user);
         });
+
+        // Set saml test enviroment
+        //https://medium.com/disney-streaming/setup-a-single-sign-on-saml-test-environment-with-docker-and-nodejs-c53fc1a984c9
 
         var samlStrategy = new saml.Strategy({
             callbackUrl: 'http://localhost/login/callback',
@@ -96,19 +101,17 @@ module.exports = function () {
             },
             passport.authenticate('samlStrategy'),
             function (req, res) {
-                console.log('-----------------------------');
-                console.log('login call back dumps');
-                console.log(req.user);
-                console.log(req.user.email)
-                console.log('-----------------------------');
-                res.send('Log in Callback Success');
+                console.log('[INFO]User logged succesfull: '+ req.session.passport.user.email);
+                //console.log(req.session.passport.user.email)
+                //res.send('Log in Callback Success');
+                res.redirect('/login/check');
             }
         );
 
         server.get('/login/check',
         function(req,res){
-            console.log("User logged");
-            console.log(req.user.email);
+            //console.log("User logged");
+            //console.log(req.user.email);
             res.send(req.isAuthenticated());
         });
         // =============================================
