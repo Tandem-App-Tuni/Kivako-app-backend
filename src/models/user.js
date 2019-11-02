@@ -2,32 +2,6 @@ const mongoose = require('mongoose');
 
 var languageSchema = new mongoose.Schema({ language: String, level: String, credits: Number }, { noId: true });
 
-var matchSchema = new mongoose.Schema({
-    requester: {
-        type: Number,
-        required: true
-    },
-    recipient: {
-        type: Number,
-        required: true
-    },
-    status: {
-        type: Number,
-        required: true
-    },
-    requestDate: {
-        type: Date
-    },
-    matchBeginningDate:{
-        type: Date
-    },
-    matchEndDate:{
-        type: Date
-    }
-});
-// Status : 1-> Pendente, 2-> Ativo, 3-> Encerrado, 4 -> Encerrado/Bloqueado
-
-
 var userSchema = new mongoose.Schema({
   firstName: {
       type: String,
@@ -49,11 +23,11 @@ var userSchema = new mongoose.Schema({
       required: true
   },
   languagesToTeach: {
-      type: [languageSchema], // Format: {"language":"PT", "level": "B2", credits: 3}
+      type: [languageSchema], // Format: {"language":"PT", "level": "B2", "credits": 3}
       required: true
   },
   languagesToLearn: {
-      type: [languageSchema], // Format: {"language":"PT", "level": "B2", credits: 3}
+      type: [languageSchema], // Format: {"language":"PT", "level": "B2", "credits": 3}
       required: true
   },
   userIsActivie:{

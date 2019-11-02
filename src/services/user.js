@@ -6,20 +6,6 @@ const express = require('express');
 const User = require('../models/user');
 
 
-function getUserIdFromAuthenticatedRequest2(req) {
-    const email = req.params.email
-
-    let isEmailExists = User.findOne({
-        "email": email
-    });
-
-    if (isEmailExists) {
-        return isEmailExists._id;
-    }
-
-}
-
-
 const getUserIdFromAuthenticatedRequest = async (req, res, next) => {
     const email = req.params.email
 
@@ -129,8 +115,8 @@ const createUser = async (req, res, next) => {
             "email": email
         });
     
-        console.log("teste");
-        console.log(isEmailExists._id)
+        //console.log("teste");
+        //console.log(isEmailExists._id)
 
         if (isEmailExists) {
             return res.status(409).json({
@@ -149,8 +135,7 @@ const createUser = async (req, res, next) => {
             languagesToTeach:languagesToTeach,
             languagesToLearn:languagesToLearn,
             userIsActivie:userIsActivie    
-        }
-
+        };
 
         let newUser = await User.create(temp);
 
@@ -249,12 +234,9 @@ const deleteUser = async (req, res, next) => {
 }
 
 const getUserIdWithEmail = async (req, res, next) => { //TODO change function STATUS AND REMOVE API POINT
-
+    console.log("F1");
     let test = await getUserIdFromAuthenticatedRequest(req);
     console.log(test);
-
-    let test2 = getUserIdFromAuthenticatedRequest2(req);
-    console.log(test2);
 
     return res.status(205).json({
         'message':'oi',
