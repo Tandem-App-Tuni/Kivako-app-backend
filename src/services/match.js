@@ -28,11 +28,11 @@ const getPossibleMatchUsers = async (req, res, next) => {
             // Get all users that match, but not the user that made the request
             // $ne -> mongodb query that mean Not Equals.
             let users = await User.find({"languagesToTeach.language":userLearnLanguages[i].language, "_id":{$ne:userID}},
-                                        {userIsActivie:0, lastUserAccess: 0,__v: 0}); //Fields that will not be returned in result
+                                        {userIsActivie:0, lastUserAccess: 0,__v: 0,matches: 0}); //Fields that will not be returned in result
         
             if(users == []){
                 // Nothing to do
-                console.log("No potential match users in this language");
+                //console.log("No potential match users in this language");
             }else{
                 // Add possible match users to list
                 usersList.push(users);

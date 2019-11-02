@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const path = require('path');
 
 module.exports = function () {
     let server = express(),
@@ -13,12 +14,16 @@ module.exports = function () {
         server.set('env', config.env);
         server.set('port', config.port);
         server.set('hostname', config.hostname);
+
+        server.set('views',path.join(__dirname,'views'));
+        server.set('view engine', 'jade');
         
         // add middleware to parse the json
         server.use(bodyParser.json());
         server.use(bodyParser.urlencoded({
             extended: false
         }));
+        server.use(express.urlencoded({extended:false}))
 
         //connect the database
         mongoose.connect(

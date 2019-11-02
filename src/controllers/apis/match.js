@@ -4,7 +4,7 @@ const matchService = require('../../services/match');
 let router = express.Router();
 
 // Get list of possible user matchs, based on learn languages preferences
-router.get('/possibleMatchs/:email', auth.isAuthenticated, matchService.getPossibleMatchUsers);
+router.get('/possibleMatchs/:email', auth.isRequestUserAutheticatedAndValid, matchService.getPossibleMatchUsers);
 
 // Get all matchs requests requested by the user
 router.get('/requestedMatchsRequests/:userId', auth.isAuthenticated, matchService.getUserRequestedMatchsRequest);
