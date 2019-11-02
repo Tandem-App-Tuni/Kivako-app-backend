@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
 var languageSchema = new mongoose.Schema({ language: String, level: String, credits: Number }, { noId: true });
 
@@ -41,11 +42,11 @@ var userSchema = new mongoose.Schema({
   profileImg:{ 
       type:String
   },
+  matches:[{type: Schema.Types.ObjectId, ref: 'Match'}] // List of the matches that user has, counting current and historic ones.
 });
 
 
 const User = mongoose.model('User', userSchema);
-
 module.exports = User;
 
 

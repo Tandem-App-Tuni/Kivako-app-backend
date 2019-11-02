@@ -29,6 +29,7 @@ module.exports = function () {
                 useUnifiedTopology: true, 
             }
         );
+        mongoose.set('useFindAndModify', false);
         const connection = mongoose.connection;
         connection.once('open', () => {
         console.log("MongoDB database connection established successfully");

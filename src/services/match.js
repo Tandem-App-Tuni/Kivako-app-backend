@@ -62,10 +62,10 @@ const getPossibleMatchUsers = async (req, res, next) => {
     }
 }
 
-// Return with the users data
-const getUserMatchsRequested = async (req, res, next) => { 
+// REQUESTS
+const getUserRequestedMatchsRequest = async (req, res, next) => { 
     try {
-        const userID = req.params.id;
+        const userID = req.params.userId;
 
         // Check if data is valid
         if (userID === undefined || userID === null) {
@@ -75,9 +75,47 @@ const getUserMatchsRequested = async (req, res, next) => {
             });
         }
 
-        //let usersMatchRequestList = await Match.find({"requesterUserID":{$eq:userID}});
-        let usersMatchRequestList = await Match.find({}).populate('requesterUser','-userIsActivie -lastUserAccess -__v')
-                                                        .populate('recipientUser','-userIsActivie -lastUserAccess -__v');
+        let usersMatchRequestList = await Match.find({"requesterUser":{$eq:userID}})
+                                               //.populate('requesterUser','-userIsActivie -lastUserAccess -__v')
+                                               //.populate('recipientUser','-userIsActivie -lastUserAccess -__v');
+
+        // Send result
+        if (usersMatchRequestList.length > 0) {
+            return res.status(200).json({
+                'message': 'matchs fetched successfully',
+                // Create data section with language as key value of the users
+                'matchs':usersMatchRequestList
+            });
+        }
+
+        return res.status(404).json({
+            'code': 'BAD_REQUEST_ERROR',
+            'description': 'No users found'
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            'code': 'SERVER_ERROR',
+            'description': 'something went wrong, Please try again'
+        });
+    }
+}
+
+const getUserReceiptMatchsRequests = async (req, res, next) => { 
+    try {
+        const userID = req.params.userId;
+
+        // Check if data is valid
+        if (userID === undefined || userID === null) {
+            return res.status(422).json({
+                'code': 'REQUIRED_FIELD_MISSING',
+                'description': 'Request User ID is required!'
+            });
+        }
+
+        let usersMatchRequestList = await Match.find({"recipientUser":{$eq:userID}})
+                                               //.populate('requesterUser','-userIsActivie -lastUserAccess -__v')
+                                               //.populate('recipientUser','-userIsActivie -lastUserAccess -__v');
 
         // Send result
         if (usersMatchRequestList.length > 0) {
@@ -107,21 +145,24 @@ const sendNewMatchRequest = async (req, res, next) => {
         const requesterUser = mongoose.Types.ObjectId(req.body.requesterID);
         const recipientUser = mongoose.Types.ObjectId(req.body.recipientID);
 
-        // Check if data is valid
-        if (requesterUser === undefined || requesterUser === null) {
-            return res.status(422).json({
-                'code': 'REQUIRED_FIELD_MISSING',
-                'description': 'Request User ID is required!'
-            });
-        }
+        
+        // Check if users exist in database
+        let userRequesterExists = await User.findById(requesterUser);
 
-        if (recipientUser === undefined || recipientUser === null) {
+        if (!userRequesterExists) {
             return res.status(422).json({
                 'code': 'REQUIRED_FIELD_MISSING',
-                'description': 'Request User ID is required!'
+                'description': 'Requester User ID is not valid!'
             });
         }
-        console.log("chegou aqui");
+        let userRecipientExists = await User.findById(requesterUser);
+
+        if (!userRecipientExists) {
+            return res.status(422).json({
+                'code': 'REQUIRED_FIELD_MISSING',
+                'description': 'Recipient User ID is not valid!'
+            });
+        }
         
         const temp = {
             requesterUser:requesterUser,
@@ -168,12 +209,45 @@ const sendNewMatchRequest = async (req, res, next) => {
 
 const acceptNewMatchRequest = async (req, res, next) => { 
     try {
+        // Receipt user accept the match
+        const matchId = req.params.matchId;
+        const matchExists = await Match.findById(matchId);
 
+        if (!matchExists) {
+            return res.status(404).json({
+                'code': 'BAD_REQUEST_ERROR',
+                'description': 'No match found with this ID found in the system'
+            });
+        }
 
-        return res.status(404).json({
-            'code': 'BAD_REQUEST_ERROR',
-            'description': 'No users found'
-        });
+        let temp = {
+            status: 2, // 2 -> Accepted
+            matchChatChanell:"teste", // TODO implement chat function to generate a new channel, next sprint
+            matchStartDate:Date.now()
+        }
+
+        let updateMatch = await Match.findByIdAndUpdate(matchId, {$set: temp});
+
+        if (updateMatch) {
+            // Get new informations from database after update
+            let updatedMatchInformations = await Match.findById(matchId);
+            
+            // Add the new match to users match list
+            let updateRequestUser = await User.findByIdAndUpdate(matchExists.requesterUser, { $push: { matches: matchId } });
+            let updateReceipUser = await User.findByIdAndUpdate(matchExists.requesterUser, { $push: { matches: matchId } });
+            if(updateRequestUser && updateReceipUser){
+                return res.status(200).json({
+                    'message': 'Match updated successfully',
+                    'data': updatedMatchInformations
+                });
+            }else{
+                throw new Error('something went wrong');
+            }
+
+        } else {
+            throw new Error('something went wrong');
+        }
+
     } catch (error) {
         return res.status(500).json({
             'code': 'SERVER_ERROR',
@@ -182,14 +256,39 @@ const acceptNewMatchRequest = async (req, res, next) => {
     }
 }
 
-const denyNewMatchRequest = async (req, res, next) => { 
+const denyMatchRequest = async (req, res, next) => { 
     try {
+        // Receipt user accept the match
+        const matchId = req.params.matchId;
+        const matchExists = await Match.findById(matchId);
+
+        if (!matchExists) {
+            return res.status(404).json({
+                'code': 'BAD_REQUEST_ERROR',
+                'description': 'No match found with this ID in the database'
+            });
+        }
+
+        const temp = {
+            status: 3, // 3 -> Match Not accepted
+            matchEndDate:Date.now()
+        }
+
+        let updateMatch = await Match.findByIdAndUpdate(matchId, {$set: temp});
 
 
-        return res.status(404).json({
-            'code': 'BAD_REQUEST_ERROR',
-            'description': 'No users found'
-        });
+        if (updateMatch) {
+            // Get new informations from database after update
+            let updatedMatchInformations = await Match.findById(matchId);
+
+            return res.status(200).json({
+                'message': 'Match updated successfully',
+                'data': updatedMatchInformations
+            });
+        } else {
+            throw new Error('something went wrong');
+        }
+
     } catch (error) {
         return res.status(500).json({
             'code': 'SERVER_ERROR',
@@ -197,11 +296,98 @@ const denyNewMatchRequest = async (req, res, next) => {
         });
     }
 }
+
+// VALID MATCHES
+const getUserCurrentActiveMatches = async (req, res, next) => {
+    try {
+        //Get user request informations
+        const userInfo = await Helper.getUserInfoWithEmail(req);
+
+        //TODO CONSIDER POSSIBILITY OF THIS BECOME A FUNCTION THAT RETURNS A LIST OF THE MATCHES AND INFORMATIONS
+        // since maybe will be used in chat too
+        let userMatchList = await User.findById(userInfo._id,'matches').populate({
+                                                                            path:'matches',
+                                                                            populate: 'requesterUser recipientUser'
+                                                                        })
+        
+
+        let userActiveMatchesList = [];
+        
+        for (i = 0; i < userMatchList.matches.length; i++) {
+        
+            if(userMatchList.matches[i].status == 2){
+                // Nothing to do
+                userActiveMatchesList.push(userMatchList.matches[i]);
+            }
+        }
+
+        //console.log(userActiveMatchesList);
+
+        if (userMatchList) {
+            return res.status(200).json({
+                'message': 'Matches get successfully',
+                'data': userActiveMatchesList
+            });
+        } else {
+            throw new Error('something went wrong');
+        }
+
+    } catch (error) {
+        return res.status(500).json({
+            'code': 'SERVER_ERROR',
+            'description': 'something went wrong, Please try again'
+        });
+    }
+}
+
+const getUserOldMatches = async (req, res, next) => {
+    try {
+        //Get user request informations
+        const userInfo = await Helper.getUserInfoWithEmail(req);
+
+        let userMatchList = await User.findById(userInfo._id,'matches').populate({
+                                                                            path:'matches',
+                                                                            populate: 'requesterUser recipientUser'
+                                                                        })
+        
+
+        let userOldMatchesList = [];
+        
+        for (i = 0; i < userMatchList.matches.length; i++) {
+        
+            if(userMatchList.matches[i].status > 2 ){
+                // Nothing to do
+                userOldMatchesList.push(userMatchList.matches[i]);
+            }
+        }
+
+        if (userMatchList) {
+            return res.status(200).json({
+                'message': 'Matches get successfully',
+                'data': userOldMatchesList
+            });
+        } else {
+            throw new Error('something went wrong');
+        }
+
+    } catch (error) {
+        return res.status(500).json({
+            'code': 'SERVER_ERROR',
+            'description': 'something went wrong, Please try again'
+        });
+    }
+}
+
 
 // TODO -> Maybe create a folder for match -> request, valid match, list of matchs
 
 module.exports = {
     getPossibleMatchUsers: getPossibleMatchUsers,
     sendNewMatchRequest: sendNewMatchRequest,
-    getUserMatchsRequested:getUserMatchsRequested
+    getUserRequestedMatchsRequest:getUserRequestedMatchsRequest,
+    getUserReceiptMatchsRequests:getUserReceiptMatchsRequests,
+    acceptNewMatchRequest:acceptNewMatchRequest,
+    denyMatchRequest:denyMatchRequest,
+    getUserCurrentActiveMatches:getUserCurrentActiveMatches,
+    getUserOldMatches:getUserOldMatches
 }

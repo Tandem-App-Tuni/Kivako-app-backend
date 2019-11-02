@@ -190,7 +190,7 @@ const updateUser = async (req, res, next) => {
         }
 
         let updateUser = await User.findByIdAndUpdate(userId, temp, {
-            new: true
+            new: true // TODO REMOVE THIS
         });
 
         if (updateUser) {

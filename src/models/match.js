@@ -12,9 +12,20 @@ var matchSchema = new mongoose.Schema({
     requestDate: {
         type: Date,
         default: Date.now 
+    },
+    matchStartDate: {
+        type: Date,
+        default: null
+    },
+    matchEndDate: {
+        type: Date,
+        default: null 
+    },
+    matchChatChanell:{
+        type: String,
+        default: null
     }
 });
-// Status : 1-> Pendente, 2-> Ativo, 3-> Encerrado, 4 -> Encerrado/Bloqueado
 
 const Match = mongoose.model('Match', matchSchema);
 
