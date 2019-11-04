@@ -6,13 +6,14 @@
 
 
 * 2) Install server dependencies:
-    npm install package.json
+    ```npm install package.json```
 
 
 * 3) Run the server locally with nodemon during the development of the system, so nodemon will restart the server after you update any file:
+    ```
     cd back_end/src
     nodemon server.js
-
+    ```
 
 * 4) To handle the SAML authentication during the development instead HAKA login for localhost test purposes, run the container image described in https://medium.com/disney-streaming/setup-a-single-sign-on-saml-test-environment-with-docker-and-nodejs-c53fc1a984c9 .The server configurations are already made, so you just need to follow the *Setup our Identity Provider* section.
 
