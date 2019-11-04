@@ -65,6 +65,8 @@ module.exports = function () {
 
         // Set saml test enviroment
         //https://medium.com/disney-streaming/setup-a-single-sign-on-saml-test-environment-with-docker-and-nodejs-c53fc1a984c9
+        //sudo docker run --name=testsamlidp2 -p 8080:8080 -p 8443:8443 -e SIMPLESAMLPHP_SP_ENTITY_ID=saml-poc -e SIMPLESAMLPHP_SP_ASSERTION_CONSUMER_SERVICE=http://localhost:3000/login/callback -d kristophjunge/test-saml-idp
+
 
         var samlStrategy = new saml.Strategy({
             callbackUrl: 'http://localhost/login/callback',

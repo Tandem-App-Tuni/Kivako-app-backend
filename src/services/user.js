@@ -6,30 +6,28 @@ const express = require('express');
 const User = require('../models/user');
 
 
-const getUserIdFromAuthenticatedRequest = async (req, res, next) => {
-    const email = req.params.email
+const checkIfUserAlreadyRegistered = async (req, res, next) => {
 
-    let isEmailExists = await User.findOne({
-        "email": email
-    });
-
-    return isEmailExists._id;
-    
-    /*try {
-        const email = req.params.email
+    try {
+        const email = req.session.passport.user.email;
 
         let isEmailExists = await User.findOne({
             "email": email
         });
 
-        return isEmailExists._id;
+        if(isEmailExists){
+            return true;
+        }else{
+            return false;
+        }
+
 
     } catch (error) {
         return res.status(500).json({
             'code': 'SERVER_ERROR',
             'description': 'something went wrong, Please try again'
         });
-    }*/
+    }
 }
 
 const getUsers = async (req, res, next) => {
@@ -233,17 +231,7 @@ const deleteUser = async (req, res, next) => {
     }
 }
 
-const getUserIdWithEmail = async (req, res, next) => { //TODO change function STATUS AND REMOVE API POINT
-    console.log("F1");
-    let test = await getUserIdFromAuthenticatedRequest(req);
-    console.log(test);
 
-    return res.status(205).json({
-        'message':'oi',
-        'test': test,
-        'test2': test2
-    });
-}
 
 module.exports = {
     getUsers: getUsers,
@@ -251,5 +239,5 @@ module.exports = {
     createUser: createUser,
     updateUser: updateUser,
     deleteUser: deleteUser,
-    getUserIdWithEmail: getUserIdWithEmail
+    checkIfUserAlreadyRegistered:checkIfUserAlreadyRegistered
 }

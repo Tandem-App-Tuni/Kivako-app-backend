@@ -1,7 +1,18 @@
 const User = require('../models/user');
+const session = require('express-session');
+
+const getUserLoggedInfoWithEmail = async (req, res, next) => {
+    const email = req.session.passport.user.email;
+
+    let isEmailExists = await User.findOne({
+        "email": email
+    });
+
+    return isEmailExists;
+}
 
 const getUserIdFromAuthenticatedRequest = async (req, res, next) => {
-    const email = req.params.email
+    const email = req.session.passport.user.email;
 
     let isEmailExists = await User.findOne({
         "email": email
@@ -23,5 +34,6 @@ const getUserInfoWithEmail = async (req, res, next) => {
 
 module.exports = {
     getUserIdFromAuthenticatedRequest: getUserIdFromAuthenticatedRequest,
-    getUserInfoWithEmail:getUserInfoWithEmail
+    getUserInfoWithEmail:getUserInfoWithEmail,
+    getUserLoggedInfoWithEmail:getUserLoggedInfoWithEmail
 }

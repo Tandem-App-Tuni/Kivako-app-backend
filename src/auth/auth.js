@@ -6,12 +6,14 @@ const logger = require('morgan');
 const session = require('express-session');
 
 
+// File to hender auxiliar functions related to authentication of the user
 
 
-//
+// Check if user that made the requisition is logged in the system.
+// Used as protection for the API's in the server
 const isAuthenticated = async (req, res, next) => {
-    //let userlog = true;
-    let userlog = req.isAuthenticated();// If testing api use the other variable
+    //let userlog = true; // If testing just requisitions use this variable instead of the other
+    let userlog = req.isAuthenticated();
 
     if(userlog == true){
         return next();
@@ -23,10 +25,11 @@ const isAuthenticated = async (req, res, next) => {
     
 }
 
-// TODO use this function to verify if the user making the request is the same that is performing some action in system and authorized
+// Check if user that made the requisition is logged in the system.
+// Used as protection for the API's in the server
+// TODO -> Method will protect api's that can be accessed just by some users.
 const isRequestUserAutheticatedAndValid = async (req, res, next) => {
 
-    //MAYBE CHANGE PARAMETERS OF THE API
     //let userlog = true;
     let userlog = req.isAuthenticated();
 

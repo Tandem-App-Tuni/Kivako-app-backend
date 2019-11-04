@@ -12,7 +12,7 @@ const getPossibleMatchUsers = async (req, res, next) => {
     try {
 
         //Get user request informations
-        const userInfo = await Helper.getUserInfoWithEmail(req);
+        const userInfo = await Helper.getUserLoggedInfoWithEmail(req);
         
         // Get user informations to be used in search match database query
         const userLearnLanguages = userInfo.languagesToLearn;
@@ -65,7 +65,7 @@ const getPossibleMatchUsers = async (req, res, next) => {
 // REQUESTS
 const getUserRequestedMatchsRequest = async (req, res, next) => { 
     try {
-        const userID = req.params.userId;
+        const userID = await Helper.getUserIdFromAuthenticatedRequest(req);
 
         // Check if data is valid
         if (userID === undefined || userID === null) {
@@ -103,7 +103,7 @@ const getUserRequestedMatchsRequest = async (req, res, next) => {
 
 const getUserReceiptMatchsRequests = async (req, res, next) => { 
     try {
-        const userID = req.params.userId;
+        const userID = await Helper.getUserIdFromAuthenticatedRequest(req);
 
         // Check if data is valid
         if (userID === undefined || userID === null) {
@@ -142,7 +142,8 @@ const getUserReceiptMatchsRequests = async (req, res, next) => {
 const sendNewMatchRequest = async (req, res, next) => { 
     
     try {
-        const requesterUser = mongoose.Types.ObjectId(req.body.requesterID);
+        const requesterUser = await Helper.getUserIdFromAuthenticatedRequest(req);
+        
         const recipientUser = mongoose.Types.ObjectId(req.body.recipientID);
 
         
@@ -301,7 +302,8 @@ const denyMatchRequest = async (req, res, next) => {
 const getUserCurrentActiveMatches = async (req, res, next) => {
     try {
         //Get user request informations
-        const userInfo = await Helper.getUserInfoWithEmail(req);
+        const userInfo = await Helper.getUserLoggedInfoWithEmail(req);
+        
 
         //TODO CONSIDER POSSIBILITY OF THIS BECOME A FUNCTION THAT RETURNS A LIST OF THE MATCHES AND INFORMATIONS
         // since maybe will be used in chat too
@@ -343,7 +345,7 @@ const getUserCurrentActiveMatches = async (req, res, next) => {
 const getUserOldMatches = async (req, res, next) => {
     try {
         //Get user request informations
-        const userInfo = await Helper.getUserInfoWithEmail(req);
+        const userInfo = await Helper.getUserLoggedInfoWithEmail(req);
 
         let userMatchList = await User.findById(userInfo._id,'matches').populate({
                                                                             path:'matches',
