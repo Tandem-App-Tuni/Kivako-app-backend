@@ -12,6 +12,9 @@ var saml = require('passport-saml');
 var fs = require('fs');
 var favicon = require('serve-favicon');
 
+const httpProxy = require('http-proxy');
+const proxy = httpProxy.createServer({});
+
 module.exports = function () {
     let server = express(),
         create,
@@ -63,10 +66,9 @@ module.exports = function () {
             done(null, user);
         });
 
-        // Set saml test enviroment
+        // Set saml test enviroment;
         //https://medium.com/disney-streaming/setup-a-single-sign-on-saml-test-environment-with-docker-and-nodejs-c53fc1a984c9
         //sudo docker run --name=testsamlidp2 -p 8080:8080 -p 8443:8443 -e SIMPLESAMLPHP_SP_ENTITY_ID=saml-poc -e SIMPLESAMLPHP_SP_ASSERTION_CONSUMER_SERVICE=http://localhost:3000/login/callback -d kristophjunge/test-saml-idp
-
 
         var samlStrategy = new saml.Strategy({
             callbackUrl: 'http://localhost/login/callback',
@@ -85,9 +87,30 @@ module.exports = function () {
 
         server.use(passport.initialize()); 
         server.use(passport.session());
+        /*
+        /TESTING APPROACH TO TRY TO SOLVE CORS PROBLEM
+        var port_test = 3002;
+        var hostname_test = "localhost"
+
+
+        var cors_proxy = require('cors-anywhere');
+        cors_proxy.createServer({
+            originWhitelist: [], // Allow all origins
+            requireHeader: ['origin', 'x-requested-with'],
+            removeHeaders: ['cookie', 'cookie2']
+        }).listen(port_test, hostname_test, function() {
+            console.log('Running CORS Anywhere on ' + hostname_test + ':' + port_test);
+        });
+        */
+        /*server.use(function(req, res, next) {
+            res.header("Access-Control-Allow-Origin", "*");
+            res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+            next();
+        });*/
 
         server.get('/login',
             function (req, res, next) {
+                //res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001');
                 console.log('-----------------------------');
                 console.log('/Start login handler');
                 next();
@@ -103,6 +126,7 @@ module.exports = function () {
             },
             passport.authenticate('samlStrategy'),
             function (req, res) {
+                //res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
                 console.log('[INFO]User logged succesfull: '+ req.session.passport.user.email);
                 //console.log(req.session.passport.user.email)
                 //res.send('Log in Callback Success');
@@ -111,11 +135,30 @@ module.exports = function () {
         );
 
         server.get('/login/check',
-        function(req,res){
-            //console.log("User logged");
-            //console.log(req.user.email);
-            res.send(req.isAuthenticated());
-        });
+            function(req,res){
+                console.log(req.session.passport.user.email);
+                //console.log(req.user.email);
+                //res.send(req.isAuthenticated());
+                let userRegistered = false;
+                if(userRegistered){
+                    res.redirect('http://localhost:3001/browse-match'); // IN CASE REACT APP RUNNING IN OTHER PORT CHANGE IT
+                }else{
+                    res.redirect('http://localhost:3001/edit-profile');
+                }
+                
+
+            }
+        );
+
+
+        server.get('/login/redirected',
+            function(req,res){
+                console.log(req.isAuthenticated());
+                //console.log(req.user.email);
+                res.send(req.isAuthenticated());
+                //proxy.web(req, res, { target: 'http://localhost:3006/admin' });
+            }
+        );
         // =============================================
 
 

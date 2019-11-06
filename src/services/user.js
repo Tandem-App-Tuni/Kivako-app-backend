@@ -9,21 +9,31 @@ const User = require('../models/user');
 const checkIfUserAlreadyRegistered = async (req, res, next) => {
 
     try {
-        const email = req.session.passport.user.email;
+        console.log("call function");
+        console.log(req.session.passport.user.email);
+        //const email = req.session.passport.user.email;
+        //const email = "test@test.com";
+
+        console.log("User email" + email);
 
         let isEmailExists = await User.findOne({
             "email": email
         });
+        console.log(isEmailExists);
 
-        if(isEmailExists){
-            return true;
+        if(isEmailExists != null){
+
+            return res.status(200).json({
+                'data': 'true'
+            });
         }else{
-            return false;
+            return res.status(200).json({
+                'data': 'false'
+            });
         }
 
-
     } catch (error) {
-        return res.status(500).json({
+        return res.status(505).json({
             'code': 'SERVER_ERROR',
             'description': 'something went wrong, Please try again'
         });
