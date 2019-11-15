@@ -8,13 +8,19 @@ const User = require('../models/user');
 
 const checkIfUserAlreadyRegistered = async (req, res, next) => {
 
+    console.log(req);
+
     try {
         console.log("call function");
-        console.log(req.session.passport.user.email);
-        //const email = req.session.passport.user.email;
+        console.log(req.session.passport.user.email); //TODO CHECK WHY REQUISITIONS ARE NOT COMING
+        console.log("==================================")
+        //console.log(req.session.passport.user.email);
+        //console.log("oi");
+        const email = req.session.passport.user.email;
         //const email = "test@test.com";
 
         console.log("User email" + email);
+        console.log('\n');
 
         let isEmailExists = await User.findOne({
             "email": email
@@ -33,7 +39,8 @@ const checkIfUserAlreadyRegistered = async (req, res, next) => {
         }
 
     } catch (error) {
-        return res.status(505).json({
+        console.log('\n');
+        return res.status(404).json({
             'code': 'SERVER_ERROR',
             'description': 'something went wrong, Please try again'
         });

@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
+const cors = require('cors')
 
 var passport = require('passport');
 var SamlStrategy = require('passport-saml').Strategy;
@@ -19,6 +20,7 @@ module.exports = function () {
     let server = express(),
         create,
         start;
+    server.use(cors());
 
     create = (config, db) => {
         let routes = require('../routes');
@@ -115,7 +117,7 @@ module.exports = function () {
                 console.log('/Start login handler');
                 next();
             },
-            passport.authenticate('samlStrategy'),
+            passport.authenticate('samlStrategy')
         );
 
         server.post('/login/callback',
@@ -139,7 +141,7 @@ module.exports = function () {
                 console.log(req.session.passport.user.email);
                 //console.log(req.user.email);
                 //res.send(req.isAuthenticated());
-                let userRegistered = false;
+                let userRegistered = req.isAuthenticated();
                 if(userRegistered){
                     res.redirect('http://localhost:3001/browse-match'); // IN CASE REACT APP RUNNING IN OTHER PORT CHANGE IT
                 }else{
