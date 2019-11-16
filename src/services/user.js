@@ -8,38 +8,39 @@ const User = require('../models/user');
 
 const checkIfUserAlreadyRegistered = async (req, res, next) => {
 
-    console.log(req);
-
     try {
-        console.log("call function");
-        console.log(req.session.passport.user.email); //TODO CHECK WHY REQUISITIONS ARE NOT COMING
-        console.log("==================================")
-        //console.log(req.session.passport.user.email);
-        //console.log("oi");
-        const email = req.session.passport.user.email;
-        //const email = "test@test.com";
+        
+        console.log("[DEBUG]Checking if user " + req.user.email + " is already registered!");
+        
+        if(req.user.email){
+            const email = req.user.email;
 
-        console.log("User email" + email);
-        console.log('\n');
-
-        let isEmailExists = await User.findOne({
-            "email": email
-        });
-        console.log(isEmailExists);
-
-        if(isEmailExists != null){
-
-            return res.status(200).json({
-                'data': 'true'
+            let isEmailExists = await User.findOne({
+                "email": email
             });
+
+            if(isEmailExists != null){
+                console.log("[INFO]User " + req.user.email + " is already registered!");
+                return res.status(200).json({
+                    'data': 'true',
+                    'email': email
+                });
+            }else{
+                console.log("[INFO]User " + req.user.email + " is not registered!");
+                return res.status(200).json({
+                    'data': 'false'
+                });
+            }
         }else{
-            return res.status(200).json({
+            console.log("[INFO]User " + req.user.email + " is not registered!");
+            return res.status(201).json({
                 'data': 'false'
             });
         }
+        
 
     } catch (error) {
-        console.log('\n');
+        console.log("[ERROR]Error during check if user " + req.user.email + " is already registered!");
         return res.status(404).json({
             'code': 'SERVER_ERROR',
             'description': 'something went wrong, Please try again'

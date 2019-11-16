@@ -2,7 +2,8 @@ const User = require('../models/user');
 const session = require('express-session');
 
 const getUserLoggedInfoWithEmail = async (req, res, next) => {
-    const email = req.session.passport.user.email;
+    //const email = req.session.passport.user.email;
+    const email =  "jbl@tuni.fi";//"dell@tuni.fi"//"jpns@tuni.fi";//"jbl@tuni.fi"
 
     let isEmailExists = await User.findOne({
         "email": email

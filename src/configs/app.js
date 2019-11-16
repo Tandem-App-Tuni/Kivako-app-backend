@@ -20,7 +20,9 @@ module.exports = function () {
     let server = express(),
         create,
         start;
-    server.use(cors());
+
+    //server.use(cors());   
+    server.use(cors({credentials: true, origin: 'http://localhost:3001'}));
 
     create = (config, db) => {
         let routes = require('../routes');
@@ -138,14 +140,20 @@ module.exports = function () {
 
         server.get('/login/check',
             function(req,res){
-                console.log(req.session.passport.user.email);
+                //console.log(req.session.passport.user.email);
                 //console.log(req.user.email);
                 //res.send(req.isAuthenticated());
-                let userRegistered = req.isAuthenticated();
-                if(userRegistered){
-                    res.redirect('http://localhost:3001/browse-match'); // IN CASE REACT APP RUNNING IN OTHER PORT CHANGE IT
+                let userAuthenticaded = req.isAuthenticated();
+                if(userAuthenticaded){
+                    let userAlreadyRegistered = false;
+                    if(userAlreadyRegistered){
+                        res.redirect('http://localhost:3001/browse-match');
+                    }else{
+                        res.redirect('http://localhost:3001/edit-profile');
+                    }
+                     // IN CASE REACT APP RUNNING IN OTHER PORT CHANGE IT
                 }else{
-                    res.redirect('http://localhost:3001/edit-profile');
+                    res.redirect('http://localhost:3001/');
                 }
                 
 
