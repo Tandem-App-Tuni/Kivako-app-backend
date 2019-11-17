@@ -91,26 +91,6 @@ module.exports = function () {
 
         server.use(passport.initialize()); 
         server.use(passport.session());
-        /*
-        /TESTING APPROACH TO TRY TO SOLVE CORS PROBLEM
-        var port_test = 3002;
-        var hostname_test = "localhost"
-
-
-        var cors_proxy = require('cors-anywhere');
-        cors_proxy.createServer({
-            originWhitelist: [], // Allow all origins
-            requireHeader: ['origin', 'x-requested-with'],
-            removeHeaders: ['cookie', 'cookie2']
-        }).listen(port_test, hostname_test, function() {
-            console.log('Running CORS Anywhere on ' + hostname_test + ':' + port_test);
-        });
-        */
-        /*server.use(function(req, res, next) {
-            res.header("Access-Control-Allow-Origin", "*");
-            res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-            next();
-        });*/
 
         server.get('/login',
             function (req, res, next) {
@@ -167,6 +147,15 @@ module.exports = function () {
                 //console.log(req.user.email);
                 res.send(req.isAuthenticated());
                 //proxy.web(req, res, { target: 'http://localhost:3006/admin' });
+            }
+        );
+
+        server.get('/isAuthenticated',
+            function(req,res){
+                console.log(req.isAuthenticated());
+                console.log("Checking if user is authenticated");
+                res.send(req.isAuthenticated());
+                
             }
         );
         // =============================================
