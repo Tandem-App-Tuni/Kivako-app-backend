@@ -154,7 +154,15 @@ module.exports = function () {
             function(req,res){
                 console.log(req.isAuthenticated());
                 console.log("Checking if user is authenticated");
-                res.send(req.isAuthenticated());
+                
+                if(req.isAuthenticated()){
+                    res.send(req.isAuthenticated());
+                }else{
+                    res.status(403).json({
+                        'message': 'access denied'
+                    });
+                }
+                
                 
             }
         );

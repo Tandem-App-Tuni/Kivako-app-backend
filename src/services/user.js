@@ -72,12 +72,17 @@ const getUsers = async (req, res, next) => {
     }
 }
 
-const getUserById = async (req, res, next) => {
+const getUserInformation = async (req, res, next) => {
     try {
-        let user = await User.findById(req.params.id);
+
+        const email = req.user.email;
+        let user = await User.findOne({
+            "email": email
+        });
+
         if (user) {
             return res.status(200).json({
-                'message': `user with id ${req.params.id} fetched successfully`,
+                'message': `User informations fetched successfully`,
                 'data': user
             });
         }
@@ -173,17 +178,28 @@ const createUser = async (req, res, next) => {
 
 const updateUser = async (req, res, next) => {
     try {
+        console.log("função chamada");
+        const userEmail = req.user.email;
 
-        const userId = req.params.id;
+        console.log(userEmail)
+        let user = await User.findOne({
+            "email": userEmail
+        });
+        console.log(user)
+        const userId = user._id;
+        console.log("user id");
+        console.log(userId)
 
-
-        if (email === undefined || email === '') {
-            return res.status(422).json({
-                'code': 'REQUIRED_FIELD_MISSING',
-                'description': 'email is required',
-                'field': 'email'
-            });
-        }
+        const {
+            firstName,
+            lastName,
+            email,
+            cities,
+            descriptionText,
+            languagesToTeach,
+            languagesToLearn,
+            userIsActivie
+        } = req.body;
 
         let isUserExists = await User.findById(userId);
 
@@ -211,7 +227,7 @@ const updateUser = async (req, res, next) => {
 
         if (updateUser) {
             return res.status(200).json({
-                'message': 'user updated successfully',
+                'update': true,
                 'data': updateUser
             });
         } else {
@@ -253,7 +269,7 @@ const deleteUser = async (req, res, next) => {
 
 module.exports = {
     getUsers: getUsers,
-    getUserById: getUserById,
+    getUserInformation: getUserInformation,
     createUser: createUser,
     updateUser: updateUser,
     deleteUser: deleteUser,
