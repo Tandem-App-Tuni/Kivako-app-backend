@@ -9,35 +9,35 @@ const User = require('../models/user');
 const checkIfUserAlreadyRegistered = async (req, res, next) => {
 
     try {
-        
+
         console.log("[DEBUG]Checking if user " + req.user.email + " is already registered!");
-        
-        if(req.user.email){
+
+        if (req.user.email) {
             const email = req.user.email;
 
             let isEmailExists = await User.findOne({
                 "email": email
             });
 
-            if(isEmailExists != null){
+            if (isEmailExists != null) {
                 console.log("[INFO]User " + req.user.email + " is already registered!");
                 return res.status(200).json({
                     'data': 'true',
                     'email': email
                 });
-            }else{
+            } else {
                 console.log("[INFO]User " + req.user.email + " is not registered!");
                 return res.status(200).json({
                     'data': 'false'
                 });
             }
-        }else{
+        } else {
             console.log("[INFO]User " + req.user.email + " is not registered!");
             return res.status(201).json({
                 'data': 'false'
             });
         }
-        
+
 
     } catch (error) {
         console.log("[ERROR]Error during check if user " + req.user.email + " is already registered!");
@@ -135,7 +135,7 @@ const createUser = async (req, res, next) => {
         let isEmailExists = await User.findOne({
             "email": email
         });
-    
+
         //console.log("teste");
         //console.log(isEmailExists._id)
 
@@ -148,14 +148,14 @@ const createUser = async (req, res, next) => {
         }
 
         const temp = {
-            firstName:firstName,
-            lastName:lastName,
-            email:email,
-            cities:cities,
-            descriptionText:descriptionText,
-            languagesToTeach:languagesToTeach,
-            languagesToLearn:languagesToLearn,
-            userIsActivie:userIsActivie    
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            cities: cities,
+            descriptionText: descriptionText,
+            languagesToTeach: languagesToTeach,
+            languagesToLearn: languagesToLearn,
+            userIsActivie: userIsActivie
         };
 
         let newUser = await User.create(temp);
@@ -211,14 +211,14 @@ const updateUser = async (req, res, next) => {
         }
 
         const temp = {
-            firstName:firstName,
-            lastName:lastName,
-            email:email,
-            cities:cities,
-            descriptionText:descriptionText,
-            languagesToTeach:languagesToTeach,
-            languagesToLearn:languagesToLearn,
-            userIsActivie:userIsActivie    
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            cities: cities,
+            descriptionText: descriptionText,
+            languagesToTeach: languagesToTeach,
+            languagesToLearn: languagesToLearn,
+            userIsActivie: userIsActivie
         }
 
         let updateUser = await User.findByIdAndUpdate(userId, temp, {
@@ -273,5 +273,5 @@ module.exports = {
     createUser: createUser,
     updateUser: updateUser,
     deleteUser: deleteUser,
-    checkIfUserAlreadyRegistered:checkIfUserAlreadyRegistered
+    checkIfUserAlreadyRegistered: checkIfUserAlreadyRegistered
 }
