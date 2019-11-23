@@ -118,18 +118,25 @@ module.exports = function () {
             }
         );
 
+        async function checkIfUserIsRegistered(userEmail){
+            const User = require('../models/user');
+            let user = User.findOne({"email": userEmail});
+
+            return user;
+
+        }
+
         server.get('/login/check',
-            function(req,res){
-                const User = require('../models/user');
+            async function(req,res){
+
                 let userAuthenticaded = req.isAuthenticated();
 
                 if(userAuthenticaded){
                     //let userAlreadyRegistered = false;
                     //TODO -> Change this call to function in services
                     console.log("User authenticated")
-                    let userAlreadyRegistered = User.findOne({"email": req.user.email});
-                    //console.log(userAlreadyRegistered.email)
-                    //console.log("===============")
+                    
+                    let userAlreadyRegistered = await checkIfUserIsRegistered(req.user.email);
 
                     if(userAlreadyRegistered.email!==undefined){
                         console.log("[DEBUG]User already registered")
