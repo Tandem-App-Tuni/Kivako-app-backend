@@ -120,16 +120,24 @@ module.exports = function () {
 
         server.get('/login/check',
             function(req,res){
-                //console.log(req.session.passport.user.email);
-                //console.log(req.user.email);
-                //res.send(req.isAuthenticated());
+                const User = require('../models/user');
                 let userAuthenticaded = req.isAuthenticated();
+
                 if(userAuthenticaded){
-                    let userAlreadyRegistered = false;
-                    if(userAlreadyRegistered){
+                    //let userAlreadyRegistered = false;
+                    //TODO -> Change this call to function in services
+                    console.log("User authenticated")
+                    let userAlreadyRegistered = User.findOne({"email": req.user.email});
+                    //console.log(userAlreadyRegistered.email)
+                    //console.log("===============")
+
+                    if(userAlreadyRegistered.email!==undefined){
+                        console.log("[DEBUG]User already registered")
                         res.redirect('http://localhost:3001/browse-match');
                     }else{
-                        res.redirect('http://localhost:3001/edit-profile');
+                        //User not registered
+                        console.log("[DEBUG]User not registered, redirecting to register page")
+                        res.redirect('http://localhost:3001/register');
                     }
                      // IN CASE REACT APP RUNNING IN OTHER PORT CHANGE IT
                 }else{
@@ -156,7 +164,11 @@ module.exports = function () {
                 console.log("Checking if user is authenticated");
                 
                 if(req.isAuthenticated()){
-                    res.send(req.isAuthenticated());
+                    //res.send(req.isAuthenticated());
+                    return res.status(200).json({
+                        'isAuthenticated': req.isAuthenticated(),
+                        'email': req.user.email
+                    });
                 }else{
                     res.status(403).json({
                         'message': 'access denied'

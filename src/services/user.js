@@ -6,6 +6,7 @@ const express = require('express');
 const User = require('../models/user');
 
 
+
 const checkIfUserAlreadyRegistered = async (req, res, next) => {
 
     try {
@@ -22,19 +23,19 @@ const checkIfUserAlreadyRegistered = async (req, res, next) => {
             if(isEmailExists != null){
                 console.log("[INFO]User " + req.user.email + " is already registered!");
                 return res.status(200).json({
-                    'data': 'true',
+                    'isRegistered': 'true',
                     'email': email
                 });
             }else{
                 console.log("[INFO]User " + req.user.email + " is not registered!");
                 return res.status(200).json({
-                    'data': 'false'
+                    'isRegistered': 'false'
                 });
             }
         }else{
             console.log("[INFO]User " + req.user.email + " is not registered!");
             return res.status(201).json({
-                'data': 'false'
+                'isRegistered': 'false'
             });
         }
         
@@ -162,8 +163,7 @@ const createUser = async (req, res, next) => {
 
         if (newUser) {
             return res.status(201).json({
-                'message': 'user created successfully',
-                'data': newUser
+                'userAdded': true
             });
         } else {
             throw new Error('something went worng');
