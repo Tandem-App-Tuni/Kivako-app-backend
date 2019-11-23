@@ -16,6 +16,9 @@ var favicon = require('serve-favicon');
 const httpProxy = require('http-proxy');
 const proxy = httpProxy.createServer({});
 
+// Front end Server url
+const frontEndURL = 'http://localhost:3001';
+
 module.exports = function () {
     let server = express(),
         create,
@@ -26,6 +29,7 @@ module.exports = function () {
 
     create = (config, db) => {
         let routes = require('../routes');
+    
         // set all the server things
         server.set('env', config.env);
         server.set('port', config.port);
@@ -110,10 +114,9 @@ module.exports = function () {
             },
             passport.authenticate('samlStrategy'),
             function (req, res) {
-                //res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+
                 console.log('[INFO]User logged succesfull: '+ req.session.passport.user.email);
-                //console.log(req.session.passport.user.email)
-                //res.send('Log in Callback Success');
+
                 res.redirect('/login/check');
             }
         );
@@ -135,20 +138,22 @@ module.exports = function () {
                     //let userAlreadyRegistered = false;
                     //TODO -> Change this call to function in services
                     console.log("User authenticated")
-                    
+
                     let userAlreadyRegistered = await checkIfUserIsRegistered(req.user.email);
 
                     if(userAlreadyRegistered.email!==undefined){
                         console.log("[DEBUG]User already registered")
-                        res.redirect('http://localhost:3001/browse-match');
+                        //frontEndURL
+                        //res.redirect('http://localhost:3001/browse-match');
+                        res.redirect(frontEndURL+'/browse-match');
                     }else{
                         //User not registered
                         console.log("[DEBUG]User not registered, redirecting to register page")
-                        res.redirect('http://localhost:3001/register');
+                        res.redirect(frontEndURL+'/register');
                     }
                      // IN CASE REACT APP RUNNING IN OTHER PORT CHANGE IT
                 }else{
-                    res.redirect('http://localhost:3001/');
+                    res.redirect(frontEndURL+'/');
                 }
                 
 
