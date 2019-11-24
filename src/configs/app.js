@@ -123,8 +123,9 @@ module.exports = function () {
 
         async function checkIfUserIsRegistered(userEmail){
             const User = require('../models/user');
-            let user = User.findOne({"email": userEmail});
 
+            let user = User.findOne({"email": userEmail});
+            
             return user;
 
         }
@@ -138,18 +139,20 @@ module.exports = function () {
                     //let userAlreadyRegistered = false;
                     //TODO -> Change this call to function in services
                     console.log("User authenticated")
-
+                    console.log(req.user.email);
                     let userAlreadyRegistered = await checkIfUserIsRegistered(req.user.email);
+                    console.log(userAlreadyRegistered)
 
-                    if(userAlreadyRegistered.email!==undefined){
+                    if(userAlreadyRegistered===null){
+                        //User not registered
+                        console.log("[DEBUG]User not registered, redirecting to register page")
+                        res.redirect(frontEndURL+'/register');
+                        
+                    }else{
                         console.log("[DEBUG]User already registered")
                         //frontEndURL
                         //res.redirect('http://localhost:3001/browse-match');
                         res.redirect(frontEndURL+'/browse-match');
-                    }else{
-                        //User not registered
-                        console.log("[DEBUG]User not registered, redirecting to register page")
-                        res.redirect(frontEndURL+'/register');
                     }
                      // IN CASE REACT APP RUNNING IN OTHER PORT CHANGE IT
                 }else{

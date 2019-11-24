@@ -25,6 +25,9 @@ var matchSchema = new mongoose.Schema({
         type: String,
         default: null
         // Blocked after match is done
+    },
+    matchLanguage:{
+        type: String,
     }
 });
 

@@ -23,19 +23,19 @@ const checkIfUserAlreadyRegistered = async (req, res, next) => {
             if(isEmailExists != null){
                 console.log("[INFO]User " + req.user.email + " is already registered!");
                 return res.status(200).json({
-                    'isRegistered': 'true',
+                    'isRegistered': true,
                     'email': email
                 });
             }else{
                 console.log("[INFO]User " + req.user.email + " is not registered!");
                 return res.status(200).json({
-                    'isRegistered': 'false'
+                    'isRegistered': false
                 });
             }
         }else{
             console.log("[INFO]User " + req.user.email + " is not registered!");
             return res.status(201).json({
-                'isRegistered': 'false'
+                'isRegistered': false
             });
         }
         
