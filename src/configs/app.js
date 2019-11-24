@@ -6,6 +6,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const cors = require('cors')
+const chatServer = require('../chatServer');
 
 var passport = require('passport');
 var SamlStrategy = require('passport-saml').Strategy;
@@ -23,6 +24,8 @@ module.exports = function () {
 
     //server.use(cors());   
     server.use(cors({credentials: true, origin: 'http://localhost:3001'}));
+
+    var appSession;
 
     create = (config, db) => {
         let routes = require('../routes');
@@ -51,12 +54,14 @@ module.exports = function () {
         // set up passport
         // ============================================
 
-        server.use(session({// TODO -> CHANGE SECRET TO SECURE FILE
+        appSession = session({// TODO -> CHANGE SECRET TO SECURE FILE
             secret: 'stuff',
             proxy: true,
             resave: true,
             saveUninitialized: true
-        }));
+        });
+
+        server.use(appSession);
 
         passport.serializeUser(function(user, done) {
             //console.log("serializing user");
@@ -193,9 +198,11 @@ module.exports = function () {
     start = () => {
         let hostname = server.get('hostname'),
             port = server.get('port');
-        server.listen(port, function () {
+        var app = server.listen(port, function () {
             console.log('Express server listening on - http://' + hostname + ':' + port);
         });
+
+        chatServer.start(app, appSession);
     };
     return {
         create: create,

@@ -18,6 +18,9 @@ const isAuthenticated = async (req, res, next) => {
     //console.log("here");
     //console.log(req.session.passport.user.email)
 
+    //console.log('Checking authentication...');
+    //console.log(req.session);
+
     if(userlog == true){
         return next();
     }else{
