@@ -18,7 +18,7 @@ const getPossibleMatchUsers = async (req, res, next) => {
         // Get user informations to be used in search match database query
         const userLearnLanguages = userInfo.languagesToLearn;
         const userID = userInfo._id;
-        
+
         let usersList = [];
         let languagesList = [];
 
@@ -26,13 +26,14 @@ const getPossibleMatchUsers = async (req, res, next) => {
         for (i = 0; i < userLearnLanguages.length; i++) {
             
             languagesList.push(userLearnLanguages[i].language);
-            // Get all users that match, but not the user that made the request
+            // Get all users that match, but not the user that made the request and users that user have a match already
             // $ne -> mongodb query that mean Not Equals.
             let users = await User.find({"languagesToTeach.language":userLearnLanguages[i].language, "_id":{$ne:userID}},
                                         {userIsActivie:0, lastUserAccess: 0,__v: 0,matches: 0}); //Fields that will not be returned in result
         
             if(users == []){
                 // Nothing to do
+                usersList.push([]);
                 //console.log("No potential match users in this language");
             }else{
                 // Add possible match users to list
@@ -126,15 +127,13 @@ const getUserReceiptMatchsRequests = async (req, res, next) => {
             });
         }
 
-        let usersMatchRequestList = await Match.find({"recipientUser":{$eq:userID}})
-                                               //.populate('requesterUser','-userIsActivie -lastUserAccess -__v')
+        let usersMatchRequestList = await Match.find({"recipientUser":{$eq:userID},"status":{$eq:1}})
+                                               .populate('requesterUser','-userIsActivie -lastUserAccess -__v')
                                                //.populate('recipientUser','-userIsActivie -lastUserAccess -__v');
 
         // Send result
         return res.status(200).json({
-            'message': 'matchs fetched successfully',
-            // Create data section with language as key value of the users
-            'matchs':usersMatchRequestList
+            'userReceiptMatches':usersMatchRequestList
         });
         /*
         if (usersMatchRequestList.length > 0) {
@@ -210,27 +209,6 @@ const sendNewMatchRequest = async (req, res, next) => {
             });
         }
         
-
-
-        /*
-        const newMatchRequest = new Match(temp);
-
-        newMatchRequest.save().then(result => {
-            res.status(201).json({
-                message: "Match registered successfully!",
-                match: {
-                    _id: result._id,
-                }
-            })
-        }).catch(err => {
-            console.log(err),
-                res.status(500).json({
-                    error: err
-                });
-        })
-        */
-
-
     } catch (error) {
         return res.status(500).json({
             'code': 'SERVER_ERROR',
@@ -253,23 +231,27 @@ const acceptNewMatchRequest = async (req, res, next) => {
         }
 
         let temp = {
-            status: 2, // 2 -> Accepted
-            matchChatChanell:"teste", // TODO implement chat function to generate a new channel, next sprint
+            status: 2, // Status 2 -> Accepted 
+            matchChatChanell:toString(matchExists.recipientUser+matchExists.requesterUser+ Date.now()), // TODO implement chat function to generate a new channel, next sprint
             matchStartDate:Date.now()
         }
 
         let updateMatch = await Match.findByIdAndUpdate(matchId, {$set: temp});
 
         if (updateMatch) {
+            
             // Get new informations from database after update
             let updatedMatchInformations = await Match.findById(matchId);
             
             // Add the new match to users match list
             let updateRequestUser = await User.findByIdAndUpdate(matchExists.requesterUser, { $push: { matches: matchId } });
-            let updateReceipUser = await User.findByIdAndUpdate(matchExists.requesterUser, { $push: { matches: matchId } });
+            let updateReceipUser = await User.findByIdAndUpdate(matchExists.recipientUser, { $push: { matches: matchId } });
+
+            // CREATE NEW CHAT ROOM HERE
+
             if(updateRequestUser && updateReceipUser){
                 return res.status(200).json({
-                    'message': 'Match updated successfully',
+                    'requested': true,
                     'data': updatedMatchInformations
                 });
             }else{

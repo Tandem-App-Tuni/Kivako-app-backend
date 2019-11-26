@@ -141,7 +141,7 @@ module.exports = function () {
                     console.log("User authenticated")
                     console.log(req.user.email);
                     let userAlreadyRegistered = await checkIfUserIsRegistered(req.user.email);
-                    console.log(userAlreadyRegistered)
+                    //console.log(userAlreadyRegistered)
 
                     if(userAlreadyRegistered===null){
                         //User not registered
@@ -159,9 +159,9 @@ module.exports = function () {
                     res.redirect(frontEndURL+'/');
                 }
                 
-
             }
         );
+        
 
 
         server.get('/login/redirected',
@@ -175,7 +175,7 @@ module.exports = function () {
 
         server.get('/isAuthenticated',
             function(req,res){
-                console.log(req.isAuthenticated());
+                //console.log(req.isAuthenticated());
                 console.log("Checking if user is authenticated");
                 
                 if(req.isAuthenticated()){
@@ -193,6 +193,12 @@ module.exports = function () {
                 
             }
         );
+
+        server.get('/logout', function(req, res){
+            console.log('[INFO]User logout succesfull: '+ req.user.email);
+            req.logout();
+            res.redirect(frontEndURL+'/');
+          });
         // =============================================
 
 
