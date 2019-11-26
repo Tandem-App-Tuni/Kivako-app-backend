@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
+const cors = require('cors')
 
 var passport = require('passport');
 var SamlStrategy = require('passport-saml').Strategy;
@@ -12,13 +13,23 @@ var saml = require('passport-saml');
 var fs = require('fs');
 var favicon = require('serve-favicon');
 
+const httpProxy = require('http-proxy');
+const proxy = httpProxy.createServer({});
+
+// Front end Server url
+const frontEndURL = 'http://localhost:3001';
+
 module.exports = function () {
     let server = express(),
         create,
         start;
 
+    //server.use(cors());   
+    server.use(cors({credentials: true, origin: 'http://localhost:3001'}));
+
     create = (config, db) => {
         let routes = require('../routes');
+    
         // set all the server things
         server.set('env', config.env);
         server.set('port', config.port);
@@ -63,10 +74,9 @@ module.exports = function () {
             done(null, user);
         });
 
-        // Set saml test enviroment
+        // Set saml test enviroment;
         //https://medium.com/disney-streaming/setup-a-single-sign-on-saml-test-environment-with-docker-and-nodejs-c53fc1a984c9
         //sudo docker run --name=testsamlidp2 -p 8080:8080 -p 8443:8443 -e SIMPLESAMLPHP_SP_ENTITY_ID=saml-poc -e SIMPLESAMLPHP_SP_ASSERTION_CONSUMER_SERVICE=http://localhost:3000/login/callback -d kristophjunge/test-saml-idp
-
 
         var samlStrategy = new saml.Strategy({
             callbackUrl: 'http://localhost/login/callback',
@@ -88,11 +98,12 @@ module.exports = function () {
 
         server.get('/login',
             function (req, res, next) {
+                //res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001');
                 console.log('-----------------------------');
                 console.log('/Start login handler');
                 next();
             },
-            passport.authenticate('samlStrategy'),
+            passport.authenticate('samlStrategy')
         );
 
         server.post('/login/callback',
@@ -103,19 +114,91 @@ module.exports = function () {
             },
             passport.authenticate('samlStrategy'),
             function (req, res) {
+
                 console.log('[INFO]User logged succesfull: '+ req.session.passport.user.email);
-                //console.log(req.session.passport.user.email)
-                //res.send('Log in Callback Success');
+
                 res.redirect('/login/check');
             }
         );
 
+        async function checkIfUserIsRegistered(userEmail){
+            const User = require('../models/user');
+
+            let user = User.findOne({"email": userEmail});
+            
+            return user;
+
+        }
+
         server.get('/login/check',
-        function(req,res){
-            //console.log("User logged");
-            //console.log(req.user.email);
-            res.send(req.isAuthenticated());
-        });
+            async function(req,res){
+
+                let userAuthenticaded = req.isAuthenticated();
+
+                if(userAuthenticaded){
+                    //let userAlreadyRegistered = false;
+                    //TODO -> Change this call to function in services
+                    console.log("User authenticated")
+                    console.log(req.user.email);
+                    let userAlreadyRegistered = await checkIfUserIsRegistered(req.user.email);
+                    //console.log(userAlreadyRegistered)
+
+                    if(userAlreadyRegistered===null){
+                        //User not registered
+                        console.log("[DEBUG]User not registered, redirecting to register page")
+                        res.redirect(frontEndURL+'/register');
+                        
+                    }else{
+                        console.log("[DEBUG]User already registered")
+                        //frontEndURL
+                        //res.redirect('http://localhost:3001/browse-match');
+                        res.redirect(frontEndURL+'/browse-match');
+                    }
+                     // IN CASE REACT APP RUNNING IN OTHER PORT CHANGE IT
+                }else{
+                    res.redirect(frontEndURL+'/');
+                }
+                
+            }
+        );
+        
+
+
+        server.get('/login/redirected',
+            function(req,res){
+                console.log(req.isAuthenticated());
+                //console.log(req.user.email);
+                res.send(req.isAuthenticated());
+                //proxy.web(req, res, { target: 'http://localhost:3006/admin' });
+            }
+        );
+
+        server.get('/isAuthenticated',
+            function(req,res){
+                //console.log(req.isAuthenticated());
+                console.log("Checking if user is authenticated");
+                
+                if(req.isAuthenticated()){
+                    //res.send(req.isAuthenticated());
+                    return res.status(200).json({
+                        'isAuthenticated': req.isAuthenticated(),
+                        'email': req.user.email
+                    });
+                }else{
+                    res.status(403).json({
+                        'message': 'access denied'
+                    });
+                }
+                
+                
+            }
+        );
+
+        server.get('/logout', function(req, res){
+            console.log('[INFO]User logout succesfull: '+ req.user.email);
+            req.logout();
+            res.redirect(frontEndURL+'/');
+          });
         // =============================================
 
 

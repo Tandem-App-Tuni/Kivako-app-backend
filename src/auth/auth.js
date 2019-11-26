@@ -12,8 +12,11 @@ const session = require('express-session');
 // Check if user that made the requisition is logged in the system.
 // Used as protection for the API's in the server
 const isAuthenticated = async (req, res, next) => {
-    //let userlog = true; // If testing just requisitions use this variable instead of the other
-    let userlog = req.isAuthenticated();
+    let userlog = true; // If testing just requisitions,without been logged, use this variable instead of the other
+    //let userlog = req.isAuthenticated();
+
+    //console.log("here");
+    //console.log(req.session.passport.user.email)
 
     if(userlog == true){
         return next();
@@ -30,12 +33,12 @@ const isAuthenticated = async (req, res, next) => {
 // TODO -> Method will protect api's that can be accessed just by some users.
 const isRequestUserAutheticatedAndValid = async (req, res, next) => {
 
-    //let userlog = true;
-    let userlog = req.isAuthenticated();
+    let userlog = true;
+    //let userlog = req.isAuthenticated();
+    //console.log("log2")
+    //console.log(req.session.passport.user.email)
 
-    console.log(req.session.passport.user.email)
-
-    if(userlog == true){
+    if(userlog == true){true
         return next();
     }else{
         res.status(400).json({

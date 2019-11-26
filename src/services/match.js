@@ -13,11 +13,12 @@ const getPossibleMatchUsers = async (req, res, next) => {
 
         //Get user request informations
         const userInfo = await Helper.getUserLoggedInfoWithEmail(req);
+        //console.log(userInfo.email)
         
         // Get user informations to be used in search match database query
         const userLearnLanguages = userInfo.languagesToLearn;
         const userID = userInfo._id;
-        
+
         let usersList = [];
         let languagesList = [];
 
@@ -25,13 +26,14 @@ const getPossibleMatchUsers = async (req, res, next) => {
         for (i = 0; i < userLearnLanguages.length; i++) {
             
             languagesList.push(userLearnLanguages[i].language);
-            // Get all users that match, but not the user that made the request
+            // Get all users that match, but not the user that made the request and users that user have a match already
             // $ne -> mongodb query that mean Not Equals.
             let users = await User.find({"languagesToTeach.language":userLearnLanguages[i].language, "_id":{$ne:userID}},
                                         {userIsActivie:0, lastUserAccess: 0,__v: 0,matches: 0}); //Fields that will not be returned in result
         
             if(users == []){
                 // Nothing to do
+                usersList.push([]);
                 //console.log("No potential match users in this language");
             }else{
                 // Add possible match users to list
@@ -40,13 +42,18 @@ const getPossibleMatchUsers = async (req, res, next) => {
             users = null;
         }
 
+        let sendArrayFormated = [];
+        for(i=0; i < languagesList.length;i++){
+            sendArrayFormated.push({'languageName':languagesList[i],'matches':usersList[i]})
+        }
+        //console.log("TESTE AQUI ==============");
+        //console.log(finalArray);
+
         // Send result
         if (usersList.length > 0) {
             return res.status(200).json({
-                'message': 'users fetched successfully',
-                'languages': languagesList ,
                 // Create data section with language as key value of the users
-                'data': {[languagesList[0]]:usersList[0],[languagesList[1]]:usersList[1],[languagesList[2]]:usersList[2]}
+                'userPossibleMatches': sendArrayFormated
             });
         }
 
@@ -65,7 +72,8 @@ const getPossibleMatchUsers = async (req, res, next) => {
 // REQUESTS
 const getUserRequestedMatchsRequest = async (req, res, next) => { 
     try {
-        const userID = await Helper.getUserIdFromAuthenticatedRequest(req);
+        const user = await Helper.getUserIdFromAuthenticatedRequest(req);
+        const userID = user._id;
 
         // Check if data is valid
         if (userID === undefined || userID === null) {
@@ -77,10 +85,15 @@ const getUserRequestedMatchsRequest = async (req, res, next) => {
 
         let usersMatchRequestList = await Match.find({"requesterUser":{$eq:userID}})
                                                //.populate('requesterUser','-userIsActivie -lastUserAccess -__v')
-                                               //.populate('recipientUser','-userIsActivie -lastUserAccess -__v');
+                                               .populate('recipientUser','-userIsActivie -lastUserAccess -matches -__v');
 
         // Send result
-        if (usersMatchRequestList.length > 0) {
+        return res.status(200).json({
+            'message': 'matchs fetched successfully',
+            // Create data section with language as key value of the users
+            'matchs':usersMatchRequestList
+        });
+        /*if (usersMatchRequestList.length > 0) {
             return res.status(200).json({
                 'message': 'matchs fetched successfully',
                 // Create data section with language as key value of the users
@@ -91,7 +104,7 @@ const getUserRequestedMatchsRequest = async (req, res, next) => {
         return res.status(404).json({
             'code': 'BAD_REQUEST_ERROR',
             'description': 'No users found'
-        });
+        });*/
 
     } catch (error) {
         return res.status(500).json({
@@ -103,7 +116,8 @@ const getUserRequestedMatchsRequest = async (req, res, next) => {
 
 const getUserReceiptMatchsRequests = async (req, res, next) => { 
     try {
-        const userID = await Helper.getUserIdFromAuthenticatedRequest(req);
+        const user = await Helper.getUserIdFromAuthenticatedRequest(req);
+        const userID = user._id;
 
         // Check if data is valid
         if (userID === undefined || userID === null) {
@@ -113,11 +127,15 @@ const getUserReceiptMatchsRequests = async (req, res, next) => {
             });
         }
 
-        let usersMatchRequestList = await Match.find({"recipientUser":{$eq:userID}})
-                                               //.populate('requesterUser','-userIsActivie -lastUserAccess -__v')
+        let usersMatchRequestList = await Match.find({"recipientUser":{$eq:userID},"status":{$eq:1}})
+                                               .populate('requesterUser','-userIsActivie -lastUserAccess -__v')
                                                //.populate('recipientUser','-userIsActivie -lastUserAccess -__v');
 
         // Send result
+        return res.status(200).json({
+            'userReceiptMatches':usersMatchRequestList
+        });
+        /*
         if (usersMatchRequestList.length > 0) {
             return res.status(200).json({
                 'message': 'matchs fetched successfully',
@@ -129,7 +147,7 @@ const getUserReceiptMatchsRequests = async (req, res, next) => {
         return res.status(404).json({
             'code': 'BAD_REQUEST_ERROR',
             'description': 'No users found'
-        });
+        });*/
 
     } catch (error) {
         return res.status(500).json({
@@ -143,63 +161,54 @@ const sendNewMatchRequest = async (req, res, next) => {
     
     try {
         const requesterUser = await Helper.getUserIdFromAuthenticatedRequest(req);
+        const requesterUserID = requesterUser._id;
         
-        const recipientUser = mongoose.Types.ObjectId(req.body.recipientID);
+        const recipientUserID = mongoose.Types.ObjectId(req.body.recipientID);
 
-        
-        // Check if users exist in database
-        let userRequesterExists = await User.findById(requesterUser);
+        // Check if a request for this user already exists
+        let matchUserAsRequester = await Match.findOne({
+            "requesterUser": requesterUserID,
+            "recipientUser": recipientUserID
+        });
+        let matchUserAsRecipient = await Match.findOne({
+            "requesterUser": recipientUserID,
+            "recipientUser": requesterUserID
+        }); 
 
-        if (!userRequesterExists) {
-            return res.status(422).json({
-                'code': 'REQUIRED_FIELD_MISSING',
-                'description': 'Requester User ID is not valid!'
-            });
-        }
-        let userRecipientExists = await User.findById(requesterUser);
-
-        if (!userRecipientExists) {
-            return res.status(422).json({
-                'code': 'REQUIRED_FIELD_MISSING',
-                'description': 'Recipient User ID is not valid!'
-            });
-        }
-        
-        const temp = {
-            requesterUser:requesterUser,
-            recipientUser:recipientUser
-        };
-
-        let newMatch = await Match.create(temp);
-
-        if (newMatch) {
-            return res.status(201).json({
-                'message': 'match request created successfully',
-                'data': newMatch
-            });
-        } else {
-            throw new Error('something went worng');
-        }
-
-        /*
-        const newMatchRequest = new Match(temp);
-
-        newMatchRequest.save().then(result => {
-            res.status(201).json({
-                message: "Match registered successfully!",
-                match: {
-                    _id: result._id,
-                }
-            })
-        }).catch(err => {
-            console.log(err),
-                res.status(500).json({
-                    error: err
+        if((matchUserAsRecipient === null) && (matchUserAsRequester === null)){
+            //Match request doesn't exist, create one
+            const temp = {
+                requesterUser:requesterUserID,
+                recipientUser:recipientUserID,
+                matchLanguage:req.body.matchLanguage
+            };
+    
+            let newMatch = await Match.create(temp);
+            //let newMatch = true
+    
+            if (newMatch) {
+                return res.status(201).json({
+                    'requested': true,
+                    'status': "new"
                 });
-        })
-        */
-
-
+            } else {
+                return res.status(201).json({
+                    'requested': false,
+                    'status': "fail"
+                });
+            }
+        }else if((matchUserAsRecipient === null) || (matchUserAsRequester === null)){
+                return res.status(201).json({
+                    'requested': true,
+                    'status': "exist"
+                });
+        }else{
+            return res.status(201).json({
+                'requested': false,
+                'status': "fail"
+            });
+        }
+        
     } catch (error) {
         return res.status(500).json({
             'code': 'SERVER_ERROR',
@@ -222,23 +231,27 @@ const acceptNewMatchRequest = async (req, res, next) => {
         }
 
         let temp = {
-            status: 2, // 2 -> Accepted
-            matchChatChanell:"teste", // TODO implement chat function to generate a new channel, next sprint
+            status: 2, // Status 2 -> Accepted 
+            matchChatChanell:toString(matchExists.recipientUser+matchExists.requesterUser+ Date.now()), // TODO implement chat function to generate a new channel, next sprint
             matchStartDate:Date.now()
         }
 
         let updateMatch = await Match.findByIdAndUpdate(matchId, {$set: temp});
 
         if (updateMatch) {
+            
             // Get new informations from database after update
             let updatedMatchInformations = await Match.findById(matchId);
             
             // Add the new match to users match list
             let updateRequestUser = await User.findByIdAndUpdate(matchExists.requesterUser, { $push: { matches: matchId } });
-            let updateReceipUser = await User.findByIdAndUpdate(matchExists.requesterUser, { $push: { matches: matchId } });
+            let updateReceipUser = await User.findByIdAndUpdate(matchExists.recipientUser, { $push: { matches: matchId } });
+
+            // CREATE NEW CHAT ROOM HERE
+
             if(updateRequestUser && updateReceipUser){
                 return res.status(200).json({
-                    'message': 'Match updated successfully',
+                    'requested': true,
                     'data': updatedMatchInformations
                 });
             }else{

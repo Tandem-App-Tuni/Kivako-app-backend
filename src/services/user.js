@@ -6,24 +6,43 @@ const express = require('express');
 const User = require('../models/user');
 
 
+
 const checkIfUserAlreadyRegistered = async (req, res, next) => {
 
     try {
-        const email = req.session.passport.user.email;
+        
+        console.log("[DEBUG]Checking if user " + req.user.email + " is already registered!");
+        
+        if(req.user.email){
+            const email = req.user.email;
 
-        let isEmailExists = await User.findOne({
-            "email": email
-        });
+            let isEmailExists = await User.findOne({
+                "email": email
+            });
 
-        if(isEmailExists){
-            return true;
+            if(isEmailExists != null){
+                console.log("[INFO]User " + req.user.email + " is already registered!");
+                return res.status(200).json({
+                    'isRegistered': true,
+                    'email': email
+                });
+            }else{
+                console.log("[INFO]User " + req.user.email + " is not registered!");
+                return res.status(200).json({
+                    'isRegistered': false
+                });
+            }
         }else{
-            return false;
+            console.log("[INFO]User " + req.user.email + " is not registered!");
+            return res.status(201).json({
+                'isRegistered': false
+            });
         }
-
+        
 
     } catch (error) {
-        return res.status(500).json({
+        console.log("[ERROR]Error during check if user " + req.user.email + " is already registered!");
+        return res.status(404).json({
             'code': 'SERVER_ERROR',
             'description': 'something went wrong, Please try again'
         });
@@ -54,12 +73,17 @@ const getUsers = async (req, res, next) => {
     }
 }
 
-const getUserById = async (req, res, next) => {
+const getUserInformation = async (req, res, next) => {
     try {
-        let user = await User.findById(req.params.id);
+
+        const email = req.user.email;
+        let user = await User.findOne({
+            "email": email
+        });
+
         if (user) {
             return res.status(200).json({
-                'message': `user with id ${req.params.id} fetched successfully`,
+                'message': `User informations fetched successfully`,
                 'data': user
             });
         }
@@ -139,8 +163,7 @@ const createUser = async (req, res, next) => {
 
         if (newUser) {
             return res.status(201).json({
-                'message': 'user created successfully',
-                'data': newUser
+                'userAdded': true
             });
         } else {
             throw new Error('something went worng');
@@ -155,17 +178,28 @@ const createUser = async (req, res, next) => {
 
 const updateUser = async (req, res, next) => {
     try {
+        console.log("função chamada");
+        const userEmail = req.user.email;
 
-        const userId = req.params.id;
+        console.log(userEmail)
+        let user = await User.findOne({
+            "email": userEmail
+        });
+        console.log(user)
+        const userId = user._id;
+        console.log("user id");
+        console.log(userId)
 
-
-        if (email === undefined || email === '') {
-            return res.status(422).json({
-                'code': 'REQUIRED_FIELD_MISSING',
-                'description': 'email is required',
-                'field': 'email'
-            });
-        }
+        const {
+            firstName,
+            lastName,
+            email,
+            cities,
+            descriptionText,
+            languagesToTeach,
+            languagesToLearn,
+            userIsActivie
+        } = req.body;
 
         let isUserExists = await User.findById(userId);
 
@@ -193,7 +227,7 @@ const updateUser = async (req, res, next) => {
 
         if (updateUser) {
             return res.status(200).json({
-                'message': 'user updated successfully',
+                'update': true,
                 'data': updateUser
             });
         } else {
@@ -235,7 +269,7 @@ const deleteUser = async (req, res, next) => {
 
 module.exports = {
     getUsers: getUsers,
-    getUserById: getUserById,
+    getUserInformation: getUserInformation,
     createUser: createUser,
     updateUser: updateUser,
     deleteUser: deleteUser,

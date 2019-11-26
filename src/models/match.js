@@ -24,6 +24,10 @@ var matchSchema = new mongoose.Schema({
     matchChatChanell:{
         type: String,
         default: null
+        // Blocked after match is done
+    },
+    matchLanguage:{
+        type: String,
     }
 });
 
