@@ -1,51 +1,10 @@
 const fs = require('fs');
 
-// ##############################################################################
-// TEMPORARY TEST USER DATA
-
-var userData0 = 
-{
-    userId: 'user1@example.com',
-    userName: 'Brian Adams',
-    rooms: [{roomId: 'user1@example.com|user2@example.com'}, 
-            {roomId: 'user1@example.com|user3@example.com'}],
-};
-
-var roomData = 
-[
-    {roomId: 'user1@example.com|user2@example.com', 
-     messages: [{id:'user1@example.com', timestamp: new Date(), text: 'Hello, how are you?'},
-                {id:'user2@example.com', timestamp: new Date(), text: 'Hey, I am fine, how about you?'},
-                {id:'user1@example.com', timestamp: new Date(), text: 'Fine aswell. When shall we meet up?'}]}, 
-    {roomId: 'user1@example.com|user3@example.com',
-     messages: [{id:'user3@example.com', timestamp: new Date(), text: 'Hey, could you teach me some Finnish?'}]}
-];
-
-var data0 = 
-{
-    rooms: [{roomId: 'user1@example.com|user2@example.com', name: 'Brian Adams'}, {roomId: 'user1@example.com|user3@example.com', name: 'Veronica Mars'}], 
-    messages: 
-    [
-        [{id:'user1@example.com', timestamp: new Date(), text: 'Hello, how are you?'},
-         {id:'user2@example.com', timestamp: new Date(), text: 'Hey, I am fine, how about you?'},
-         {id:'user1@example.com', timestamp: new Date(), text: 'Fine aswell. When shall we meet up?'}],
-        [{id:'user3@example.com', timestamp: new Date(), text: 'Hey, could you teach me some Finnish?'}]
-    ]
-};
-
-// ##############################################################################
-
+const User = require('./models/user');
+const Room = require('./models/room.js');
 
 // Total number of users currently online and chating.
 var totalUserOnline = 0;
-
-/*A dictionary storing the currently active users.
-* Eachs active user stores a structure contiaining room names
-* for that specific user. Similar for active rooms which hold the messages
-* of that specific room.
-*/
-var activeUsers = {};
-var activeRooms = {};
 
 var incrementTotalUserCount = function()
 {
@@ -76,7 +35,7 @@ var start = function(server, session)
     var io = require('socket.io').listen(server);
     io.use(shrdSession(session));
 
-    io.on('connection', (socket) => 
+    io.on('connection', (socket) =>
     {
         var passportSession = socket.handshake.session.passport;
 
@@ -84,27 +43,57 @@ var start = function(server, session)
 
         /**
          * An authenticated user joins the room for the first time.
-         * Appropriate objects are created, such as active users and active rooms.
-         * If the user is not authenticated the socket is disconnected.
+         * Appropriate objects are created and sent to the client
+         * for displaying.
          */
         if ((typeof passportSession) != 'undefined')
         {
-            var userId = passportSession.user.email;
-            var userRooms = data0.rooms;
-            var messages = data0.messages;
+            let userId = passportSession.user.email;
 
-            userRooms.forEach((element, index) => 
+            User.findOne({email: userId}).then((userData) => 
             {
-                if (element.roomId in activeRooms) messages[index] = activeRooms[element.roomId].messages;
-                else activeRooms[element.roomId] = {userCount: 0, messages: messages[index]};
+                if (!userData)
+                {
+                    console.log('Did not find user with email:', userId, 'Report this to the mantainer!');
+                    socket.disconnect();
+                    return;
+                }
+
+                userData.rooms.forEach((roomId, index) => 
+                {
+                    let secondUserId;
+                    roomId.split('|').forEach((element) => 
+                    {
+                        if (element != userId) secondUserId = element;
+                    });
+
+                    Room.findOne({roomId:roomId}).then((roomData) => 
+                    {
+                        if (!roomData)
+                        {
+                            console.log('Did not find room with id:', element, 'Report this to the mantainer!');
+                            socket.disconnect();
+                            return;
+                        }
+
+                        User.findOne({email: secondUserId}).then((secondUserData) => 
+                        {
+                            if (!secondUserData)
+                            {
+                                console.log('Did not find second user with email:', secondUserData.email, 'Report this to the mantainer!');
+                                return;
+                            }
+
+                            socket.emit('initialization', {user: userId, roomInformation: {roomId: roomId, messages: roomData.messages}, name: secondUserData.firstName + ' ' + secondUserData.lastName});
+                        });
+                    });
+                });
+
+
+                incrementTotalUserCount();
+                console.log('User email: ' + userId);
+                console.log('User connected sucessfully!');
             });
-
-            activeUsers[userId] = {user: userId, rooms: userRooms};
-            socket.emit('initialization', {user: userId, rooms: userRooms, messages: messages});
-            incrementTotalUserCount();
-
-            console.log('User email: ' + passportSession.user.email);
-            console.log('User connected sucessfully!');
         }
         else
         {
@@ -113,25 +102,11 @@ var start = function(server, session)
         }
 
         /**
-         * Functino listens to socket disconnection events
-         * and removes the user from the active user table.
-         * If the rooms that the user participated in have 0 active users
-         * store the rooms in the database.
+         * Functino listens to socket disconnection events.
          * */
         socket.on('disconnect', function () 
         {
-            var userId = passportSession.user.email;
-            var userRooms = activeUsers[userId].rooms;
-
-            userRooms.forEach((element, index) => 
-            {
-                var roomId = element.roomId;
-
-                activeRooms[roomId].userCount--;
-                if (activeRooms[roomId].userCount == 0) delete activeRooms[roomId]; // Store room data back to the database TODO
-            });
-
-            delete activeUsers[userId];
+            let userId = passportSession.user.email;
 
             decreaseTotalUserCount();
             console.log('User information removed...disconnecting user ' + userId);
@@ -153,7 +128,17 @@ var start = function(server, session)
             if (data.to != 'null') 
             {
                 socket.join(data.to);
-                socket.emit('roomUpdate', {roomId: data.to, room: activeRooms[data.to]});
+
+                Room.findOne({roomId: data.to}).then((roomData) => 
+                {
+                    if (!roomData)
+                    {
+                        console.log('Room with ID', data.to, 'not found!');
+                        return;
+                    }
+
+                    socket.emit('roomUpdate', {roomId: data.to, room: roomData});
+                });
             }
         });
 
@@ -168,10 +153,10 @@ var start = function(server, session)
             var message = data.message;
             var roomId = data.roomId;
 
-            console.log('Message recieved from user ', user, ' from room ', roomId, '->', message);
+            console.log('Message recieved from user', user, 'from room', roomId, '->', message);
             
             socket.to(roomId).emit('message', message);
-            activeRooms[roomId].messages.push(message);
+            Room.findOneAndUpdate({roomId: roomId}, {$push: {messages: message}}).exec();
         });
     });
 
