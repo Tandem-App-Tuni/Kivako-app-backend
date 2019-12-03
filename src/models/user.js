@@ -42,6 +42,10 @@ var userSchema = new mongoose.Schema({
   profileImg:{ 
       type:String
   },
+  rooms:
+  {
+    type:[String]
+  },
   matches:[{type: Schema.Types.ObjectId, ref: 'Match'}] // List of the matches that user has, counting current and historic ones.
 });
 
