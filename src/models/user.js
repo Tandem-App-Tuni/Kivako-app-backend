@@ -33,7 +33,8 @@ var userSchema = new mongoose.Schema({
   },
   userIsActivie:{
       type: Boolean,
-      required: true
+      required: true,
+      default:true
   },
   lastUserAccess:{ 
       type: Date, 
@@ -42,7 +43,12 @@ var userSchema = new mongoose.Schema({
   profileImg:{ 
       type:String
   },
-  matches:[{type: Schema.Types.ObjectId, ref: 'Match'}] // List of the matches that user has, counting current and historic ones.
+  matches:[{type: Schema.Types.ObjectId, ref: 'Match'}], // List of the matches that user has, counting current and historic ones.
+  isAdmin:{
+      type: Boolean,
+      required:true,
+      default:false
+  }
 });
 
 

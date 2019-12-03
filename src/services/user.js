@@ -24,7 +24,8 @@ const checkIfUserAlreadyRegistered = async (req, res, next) => {
                 console.log("[INFO]User " + req.user.email + " is already registered!");
                 return res.status(200).json({
                     'isRegistered': true,
-                    'email': email
+                    'email': email,
+                    'isAdmin':isEmailExists.isAdmin
                 });
             }else{
                 console.log("[INFO]User " + req.user.email + " is not registered!");
@@ -52,7 +53,7 @@ const checkIfUserAlreadyRegistered = async (req, res, next) => {
 const getUsers = async (req, res, next) => {
     try {
 
-        let users = await User.find({});
+        let users = await User.find({},{languagesToTeach:0, languagesToLearn: 0,__v: 0,matches: 0});
 
         if (users.length > 0) {
             return res.status(200).json({
@@ -72,6 +73,30 @@ const getUsers = async (req, res, next) => {
         });
     }
 }
+
+const getAdminUsers = async (req, res, next) => {
+    try {
+
+        let users = await User.find({"isAdmin": true}, {languagesToTeach:0, languagesToLearn: 0,__v: 0,matches: 0});
+
+        if (users.length > 0) {
+            return res.status(200).json({
+                'data': users
+            });
+        }
+
+        return res.status(404).json({
+            'code': 'BAD_REQUEST_ERROR',
+            'description': 'No users found in the system'
+        });
+    } catch (error) {
+        return res.status(500).json({
+            'code': 'SERVER_ERROR',
+            'description': 'something went wrong, Please try again'
+        });
+    }
+}
+
 
 const getUserInformation = async (req, res, next) => {
     try {
@@ -113,7 +138,8 @@ const createUser = async (req, res, next) => {
             descriptionText,
             languagesToTeach,
             languagesToLearn,
-            userIsActivie
+            userIsActivie,
+            isAdmin
         } = req.body;
 
         /*
@@ -156,7 +182,8 @@ const createUser = async (req, res, next) => {
             descriptionText:descriptionText,
             languagesToTeach:languagesToTeach,
             languagesToLearn:languagesToLearn,
-            userIsActivie:userIsActivie    
+            userIsActivie:userIsActivie,
+            isAdmin:isAdmin  
         };
 
         let newUser = await User.create(temp);
@@ -273,5 +300,6 @@ module.exports = {
     createUser: createUser,
     updateUser: updateUser,
     deleteUser: deleteUser,
-    checkIfUserAlreadyRegistered:checkIfUserAlreadyRegistered
+    checkIfUserAlreadyRegistered:checkIfUserAlreadyRegistered,
+    getAdminUsers:getAdminUsers
 }
