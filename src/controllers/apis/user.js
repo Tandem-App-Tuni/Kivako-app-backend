@@ -10,8 +10,13 @@ router.get('/isRegistered', auth.isAuthenticated, userService.checkIfUserAlready
 
 // Get a list of all users in system
 // TODO -> In the end change authentication of this function to admin users
-//http://localhost:3000/api/v1/users/
-router.get('/', auth.isAuthenticated, userService.getUsers);
+//http://localhost:3000/api/v1/users/studentUsers
+router.get('/studentUsers', auth.isAuthenticated, userService.getUsers);
+
+// Get a list of all admin users in system
+// TODO -> In the end change authentication of this function to admin users
+//http://localhost:3000/api/v1/users/adminUsers
+router.get('/adminUsers', auth.isAuthenticated, userService.getAdminUsers);
 
 // Get information of one user, with his email
 //http://localhost:3000/api/v1/users/userInfo

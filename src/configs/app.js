@@ -19,6 +19,7 @@ const proxy = httpProxy.createServer({});
 
 // Front end Server url
 const frontEndURL = 'http://localhost:3001';
+const adminFrontEndURL = 'http://localhost:3002';
 
 module.exports = function () {
     let server = express(),
@@ -155,9 +156,16 @@ module.exports = function () {
                         
                     }else{
                         console.log("[DEBUG]User already registered")
+                        if(userAlreadyRegistered.isAdmin){
+                            // Redirect to admin app
+                            res.redirect(adminFrontEndURL+'/list-admins');
+                        }else{
+                            //res.redirect(frontEndURL+'/browse-match');
+                        }
                         //frontEndURL
                         //res.redirect('http://localhost:3001/browse-match');
-                        res.redirect(frontEndURL+'/browse-match');
+                        
+                        
                     }
                      // IN CASE REACT APP RUNNING IN OTHER PORT CHANGE IT
                 }else{
