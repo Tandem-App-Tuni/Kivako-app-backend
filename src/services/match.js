@@ -7,7 +7,11 @@ const Helper = require('./helper');
 const Match = require('../models/match');
 var mongoose = require('mongoose');
 
+// Chat database structures
+const Room = require('../models/room.js');
 
+
+ 
 const getPossibleMatchUsers = async (req, res, next) => {
     try {
 
@@ -238,6 +242,8 @@ const acceptNewMatchRequest = async (req, res, next) => {
 
         let updateMatch = await Match.findByIdAndUpdate(matchId, {$set: temp});
 
+        console.log('Matching user...');
+
         if (updateMatch) {
             
             // Get new informations from database after update
@@ -248,6 +254,17 @@ const acceptNewMatchRequest = async (req, res, next) => {
             let updateReceipUser = await User.findByIdAndUpdate(matchExists.recipientUser, { $push: { matches: matchId } });
 
             // CREATE NEW CHAT ROOM HERE
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            let roomId = updateRequestUser.email + '|' + updateReceipUser.email;
+            let roomVr = await Room.findOne({roomId: roomId});
+
+            if (roomVr) throw new Error('Room already exists! Duplicated match request!', roomId);
+
+            await User.findByIdAndUpdate(matchExists.requesterUser, { $push: { rooms: roomId } });
+            await User.findByIdAndUpdate(matchExists.recipientUser, { $push: { rooms: roomId } });
+            
+            roomVr = await Room.create({roomId:roomId});
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             if(updateRequestUser && updateReceipUser){
                 return res.status(200).json({
@@ -262,7 +279,9 @@ const acceptNewMatchRequest = async (req, res, next) => {
             throw new Error('something went wrong');
         }
 
-    } catch (error) {
+    } catch (error) 
+    {
+        console.log(error);
         return res.status(500).json({
             'code': 'SERVER_ERROR',
             'description': 'something went wrong, Please try again'
