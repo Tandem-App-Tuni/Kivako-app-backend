@@ -102,14 +102,38 @@ var start = function(server, session)
         }
 
         /**
-         * Functino listens to socket disconnection events.
+         * Function listens to socket disconnection events
+         * and removes the user from the active user table.
+         * If the rooms that the user participated in have 0 active users
+         * store the rooms in the database.
          * */
         socket.on('disconnect', function () 
         {
-            let userId = passportSession.user.email;
+            var userId = passportSession.user.email;
+
+            console.log('Disconnecting user', userId);
+
+            if (!(userId in activeUsers))
+            {
+                console.log('Disconnecting an inactive user?');
+                console.log('ActiveUser count', totalUserOnline, 'activeUser key count:',Object.keys(activeUsers).length);
+
+                return;
+            }
+
+            var userRooms = activeUsers[userId].rooms;
+
+            userRooms.forEach((element) => 
+            {
+                var roomId = element.roomId;
+
+                activeRooms[roomId].userCount--;
+                if (activeRooms[roomId].userCount == 0) delete activeRooms[roomId]; // Store room data back to the database TODO
+            });
+
+            delete activeUsers[userId];
 
             decreaseTotalUserCount();
-            console.log('User information removed...disconnecting user ' + userId);
         });
 
         /**
