@@ -25,22 +25,6 @@ const getLanguageStatitics = async (req, res, next) => {
                             activeMatches: matchesInLanguage }
             
             languageStatitics.push(format);
-           /* 
-            languagesList.push(userLearnLanguages[i].language);
-            // Get all users that match, but not the user that made the request and users that user have a match already
-            // $ne -> mongodb query that mean Not Equals.
-           ult
-        
-            if(users == []){
-                // Nothing to do
-                usersList.push([]);
-                //console.log("No potential match users in this language");
-            }else{
-                // Add possible match users to list
-                usersList.push(users);
-            }
-            users = null;
-            */
         }
 
         return res.status(200).json({
@@ -56,9 +40,122 @@ const getLanguageStatitics = async (req, res, next) => {
     }
 }
 
+const getStudentUsers = async (req, res, next) => {
+    try {
+
+        let users = await User.find({"isAdmin":false},{languagesToTeach:0, languagesToLearn: 0,__v: 0,matches: 0});
+
+        if (users.length > 0) {
+            return res.status(200).json({
+                //'message': 'users fetched successfully',
+                'data': users
+            });
+        }
+
+        return res.status(404).json({
+            'code': 'BAD_REQUEST_ERROR',
+            'description': 'No users found in the system'
+        });
+    } catch (error) {
+        return res.status(500).json({
+            'code': 'SERVER_ERROR',
+            'description': 'something went wrong, Please try again'
+        });
+    }
+}
+
+const getAdminUsers = async (req, res, next) => {
+    try {
+
+        let users = await User.find({"isAdmin": true}, {languagesToTeach:0, languagesToLearn: 0,__v: 0,matches: 0});
+
+        if (users.length > 0) {
+            return res.status(200).json({
+                'data': users
+            });
+        }
+
+        return res.status(404).json({
+            'code': 'BAD_REQUEST_ERROR',
+            'description': 'No users found in the system'
+        });
+    } catch (error) {
+        return res.status(500).json({
+            'code': 'SERVER_ERROR',
+            'description': 'something went wrong, Please try again'
+        });
+    }
+}
+
+const createAdminUser = async (req, res, next) => {
+    try {
+
+        const {
+            firstName,
+            lastName,
+            email,
+            cities,
+            descriptionText,
+            languagesToTeach,
+            languagesToLearn,
+            userIsActivie
+        } = req.body;
+
+        if (email === undefined || email === '') {
+            return res.status(422).json({
+                'code': 'REQUIRED_FIELD_MISSING',
+                'description': 'email is required',
+                'field': 'email'
+            });
+        }
+
+        let isEmailExists = await User.findOne({
+            "email": email
+        });
+
+        if (isEmailExists) {
+            return res.status(409).json({
+                'code': 'ENTITY_ALREAY_EXISTS',
+                'description': 'email already exists',
+                'field': 'email'
+            });
+        }
+
+        const temp = {
+            firstName:firstName,
+            lastName:lastName,
+            email:email,
+            cities:cities,
+            descriptionText:descriptionText,
+            languagesToTeach:languagesToTeach,
+            languagesToLearn:languagesToLearn,
+            userIsActivie:userIsActivie,
+            isAdmin:true  
+        };
+
+        let newUser = await User.create(temp);
+
+        if (newUser) {
+            return res.status(201).json({
+                'userAdded': true
+            });
+        } else {
+            throw new Error('something went worng');
+        }
+    } catch (error) {
+        return res.status(500).json({
+            'code': 'SERVER_ERROR',
+            'description': 'something went wrong, Please try again'
+        });
+    }
+}
+
 module.exports =
 {
-    getLanguageStatitics:getLanguageStatitics
+    getLanguageStatitics:getLanguageStatitics,
+    getStudentUsers:getStudentUsers,
+    getAdminUsers:getAdminUsers,
+    createAdminUser:createAdminUser
 };
 
 const languages = [

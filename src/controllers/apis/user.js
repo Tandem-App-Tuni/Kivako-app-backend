@@ -8,14 +8,6 @@ let router = express.Router();
 //http://localhost:3000/api/v1/users/isRegistered
 router.get('/isRegistered', auth.isAuthenticated, userService.checkIfUserAlreadyRegistered);
 
-// Get a list of all users in system [JUST FOR ADMINS]
-//http://localhost:3000/api/v1/users/studentUsers
-router.get('/studentUsers', auth.checkIfUserIsAuthenticatedAndAdmin, userService.getUsers);
-
-// Get a list of all admin users in system [JUST FOR ADMINS]
-//http://localhost:3000/api/v1/users/adminUsers
-router.get('/adminUsers', auth.checkIfUserIsAuthenticatedAndAdmin, userService.getAdminUsers);
-
 // Get information of one user, with his email
 //http://localhost:3000/api/v1/users/userInfo
 router.get('/userInfo', auth.isAuthenticated, userService.getUserInformation);

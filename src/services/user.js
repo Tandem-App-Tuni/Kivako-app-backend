@@ -50,54 +50,6 @@ const checkIfUserAlreadyRegistered = async (req, res, next) => {
     }
 }
 
-const getUsers = async (req, res, next) => {
-    try {
-
-        let users = await User.find({},{languagesToTeach:0, languagesToLearn: 0,__v: 0,matches: 0});
-
-        if (users.length > 0) {
-            return res.status(200).json({
-                //'message': 'users fetched successfully',
-                'data': users
-            });
-        }
-
-        return res.status(404).json({
-            'code': 'BAD_REQUEST_ERROR',
-            'description': 'No users found in the system'
-        });
-    } catch (error) {
-        return res.status(500).json({
-            'code': 'SERVER_ERROR',
-            'description': 'something went wrong, Please try again'
-        });
-    }
-}
-
-const getAdminUsers = async (req, res, next) => {
-    try {
-
-        let users = await User.find({"isAdmin": true}, {languagesToTeach:0, languagesToLearn: 0,__v: 0,matches: 0});
-
-        if (users.length > 0) {
-            return res.status(200).json({
-                'data': users
-            });
-        }
-
-        return res.status(404).json({
-            'code': 'BAD_REQUEST_ERROR',
-            'description': 'No users found in the system'
-        });
-    } catch (error) {
-        return res.status(500).json({
-            'code': 'SERVER_ERROR',
-            'description': 'something went wrong, Please try again'
-        });
-    }
-}
-
-
 const getUserInformation = async (req, res, next) => {
     try {
 
@@ -142,14 +94,6 @@ const createUser = async (req, res, next) => {
             isAdmin
         } = req.body;
 
-        /*
-        if (name === undefined || name === '') {
-            return res.status(422).json({
-                'code': 'REQUIRED_FIELD_MISSING',
-                'description': 'name is required',
-                'field': 'name'
-            });
-        }*/
 
         if (email === undefined || email === '') {
             return res.status(422).json({
@@ -183,7 +127,7 @@ const createUser = async (req, res, next) => {
             languagesToTeach:languagesToTeach,
             languagesToLearn:languagesToLearn,
             userIsActivie:userIsActivie,
-            isAdmin:isAdmin  
+            isAdmin:false  
         };
 
         let newUser = await User.create(temp);
@@ -295,11 +239,9 @@ const deleteUser = async (req, res, next) => {
 
 
 module.exports = {
-    getUsers: getUsers,
     getUserInformation: getUserInformation,
     createUser: createUser,
     updateUser: updateUser,
     deleteUser: deleteUser,
     checkIfUserAlreadyRegistered:checkIfUserAlreadyRegistered,
-    getAdminUsers:getAdminUsers
 }

@@ -32,7 +32,7 @@ const isAuthenticated = async (req, res, next) => {
     
 }
 
-// Check if user that made the requisition is logged in the system.
+// Check if user that made the requisition is logged in the system and if the user is an admin.
 // Used as protection for the API's in the server
 const checkIfUserIsAuthenticatedAndAdmin = async (req, res, next) => {
     const user =  await User.findOne({
