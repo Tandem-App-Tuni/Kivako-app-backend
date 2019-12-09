@@ -236,6 +236,32 @@ const deleteUser = async (req, res, next) => {
     }
 }
 
+const loadUserInfoMenuDrawer = async (req, res, next) => {
+    try {
+        const user = await Helper.getUserIdFromAuthenticatedRequest(req);
+        const userID = user._id;
+        
+        // Check in each learn language the possible matchs, and save this users in a list
+
+        let numberOfRequests = await Match.countDocuments({"recipientUser":{$eq:userID},"status":{$eq:1}});
+        let currentActiveMatchesReceip = await Match.countDocuments({"recipientUser":{$eq:userID},"status":{$eq:2}});
+        let currentActiveMatchesRequest = await Match.countDocuments({"requesterUser":{$eq:userID},"status":{$eq:2}});
+    
+
+        return res.status(200).json({
+            // Create data section with language as key value of the users
+            'numberOfRequests': numberOfRequests,
+            'activeMatches': currentActiveMatchesReceip +currentActiveMatchesRequest,
+
+        });
+        
+    } catch (error) {
+        return res.status(500).json({
+            'code': 'SERVER_ERROR',
+            'description': 'something went wrong, Please try again'
+        });
+    }
+}
 
 
 module.exports = {
@@ -244,4 +270,5 @@ module.exports = {
     updateUser: updateUser,
     deleteUser: deleteUser,
     checkIfUserAlreadyRegistered:checkIfUserAlreadyRegistered,
+    loadUserInfoMenuDrawer:loadUserInfoMenuDrawer
 }

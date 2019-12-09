@@ -12,6 +12,10 @@ router.get('/isRegistered', auth.isAuthenticated, userService.checkIfUserAlready
 //http://localhost:3000/api/v1/users/userInfo
 router.get('/userInfo', auth.isAuthenticated, userService.getUserInformation);
 
+// Get some informations of one user, with his email, to insert in menudrawer
+//http://localhost:3000/api/v1/users/drawer
+router.get('/drawer', auth.isAuthenticated, userService.loadUserInfoMenuDrawer);
+
 // Register a new user
 //http://localhost:3000/api/v1/users/add //POST REQUEST
 router.post('/add', auth.isAuthenticated, userService.createUser);
@@ -25,5 +29,8 @@ router.post('/update', auth.isAuthenticated, userService.updateUser);
 //http://localhost:3000/api/v1/users/:id //DELETE REQUEST
 // TODO -> Just for development, in the end delete this endpoint.
 router.delete('/:id', auth.isAuthenticated, userService.deleteUser);
+
+
+
 
 module.exports = router;

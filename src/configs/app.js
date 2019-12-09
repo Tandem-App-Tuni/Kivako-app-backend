@@ -178,7 +178,7 @@ module.exports = function () {
                             // Redirect to admin app
                             res.redirect(adminFrontEndURL+'/list-admins');
                         }else{
-                            //res.redirect(frontEndURL+'/browse-match');
+                            res.redirect(frontEndURL+'/browse-match');
                         }
                         //frontEndURL
                         //res.redirect('http://localhost:3001/browse-match');
