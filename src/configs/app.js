@@ -20,14 +20,32 @@ const proxy = httpProxy.createServer({});
 // Front end Server url
 const frontEndURL = 'http://localhost:3001';
 const adminFrontEndURL = 'http://localhost:3002';
+const smlAuthenticationProvider = 'http://localhost:8080';
 
 module.exports = function () {
     let server = express(),
         create,
         start;
 
+        var allowedOrigins = [frontEndURL,adminFrontEndURL, smlAuthenticationProvider];
+        server.use(cors({credentials: true,
+            origin: function(origin, callback){
+                console.log(origin)
+                // allow requests with no origin 
+                // (like mobile apps or curl requests)
+                if(!origin) return callback(null, true);
+
+                if(allowedOrigins.indexOf(origin) === -1){
+                    var msg = 'The CORS policy for this site does not ' +
+                    'allow access from the specified Origin.';
+                    return callback(new Error(msg), false);
+                }
+                return callback(null, true);
+            }
+        }));
+
     //server.use(cors());   
-    server.use(cors({credentials: true, origin: 'http://localhost:3001'}));
+    //server.use(cors({credentials: true, origin: 'http://localhost:3001'}));
 
     var appSession;
 
