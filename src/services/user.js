@@ -4,7 +4,7 @@
 ********/
 const express = require('express');
 const User = require('../models/user');
-
+const Email = require('./email');
 
 
 const checkIfUserAlreadyRegistered = async (req, res, next) => {
@@ -19,9 +19,12 @@ const checkIfUserAlreadyRegistered = async (req, res, next) => {
             let isEmailExists = await User.findOne({
                 "email": email
             });
+            
 
             if(isEmailExists != null){
                 console.log("[INFO]User " + req.user.email + " is already registered!");
+                Email.sendEmailNewMatchRequest(isEmailExists)//TODO REMOVE IT
+                
                 return res.status(200).json({
                     'isRegistered': true,
                     'email': email,

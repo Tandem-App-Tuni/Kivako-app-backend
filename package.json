@@ -19,6 +19,7 @@
     "mongoose": "^5.7.5",
     "morgan": "^1.9.1",
     "multer": "^1.4.2",
+    "nodemailer": "^6.4.2",
     "passport": "^0.4.0",
     "passport-saml": "^1.2.0",
     "react": "^16.8.6",
