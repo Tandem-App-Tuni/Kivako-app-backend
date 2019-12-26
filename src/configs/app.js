@@ -18,6 +18,9 @@ const loginStrategy = require('./loginStrategy')();
 // Front end Server url
 
 const frontEndURL = 'https://www.unitandem.fi'; //localhost:3001
+//const frontEndURL = 'http://localhost:3001';
+const adminFrontEndURL = 'http://localhost:3002';
+const smlAuthenticationProvider = 'http://localhost:8080';
 
 module.exports = function () 
 {
@@ -26,7 +29,7 @@ module.exports = function ()
         start;
 
 
-        var allowedOrigins = [frontEndURL,adminFrontEndURL, smlAuthenticationProvider];
+        var allowedOrigins = [frontEndURL, adminFrontEndURL, smlAuthenticationProvider];
         server.use(cors({credentials: true,
             origin: function(origin, callback){
                 console.log(origin)
