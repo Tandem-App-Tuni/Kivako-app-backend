@@ -24,7 +24,8 @@ const checkIfUserAlreadyRegistered = async (req, res, next) => {
                 console.log("[INFO]User " + req.user.email + " is already registered!");
                 return res.status(200).json({
                     'isRegistered': true,
-                    'email': email
+                    'email': email,
+                    'isAdmin':isEmailExists.isAdmin
                 });
             }else{
                 console.log("[INFO]User " + req.user.email + " is not registered!");
@@ -43,30 +44,6 @@ const checkIfUserAlreadyRegistered = async (req, res, next) => {
     } catch (error) {
         console.log("[ERROR]Error during check if user " + req.user.email + " is already registered!");
         return res.status(404).json({
-            'code': 'SERVER_ERROR',
-            'description': 'something went wrong, Please try again'
-        });
-    }
-}
-
-const getUsers = async (req, res, next) => {
-    try {
-
-        let users = await User.find({});
-
-        if (users.length > 0) {
-            return res.status(200).json({
-                //'message': 'users fetched successfully',
-                'data': users
-            });
-        }
-
-        return res.status(404).json({
-            'code': 'BAD_REQUEST_ERROR',
-            'description': 'No users found in the system'
-        });
-    } catch (error) {
-        return res.status(500).json({
             'code': 'SERVER_ERROR',
             'description': 'something went wrong, Please try again'
         });
@@ -113,17 +90,10 @@ const createUser = async (req, res, next) => {
             descriptionText,
             languagesToTeach,
             languagesToLearn,
-            userIsActivie
+            userIsActivie,
+            isAdmin
         } = req.body;
 
-        /*
-        if (name === undefined || name === '') {
-            return res.status(422).json({
-                'code': 'REQUIRED_FIELD_MISSING',
-                'description': 'name is required',
-                'field': 'name'
-            });
-        }*/
 
         if (email === undefined || email === '') {
             return res.status(422).json({
@@ -156,7 +126,8 @@ const createUser = async (req, res, next) => {
             descriptionText:descriptionText,
             languagesToTeach:languagesToTeach,
             languagesToLearn:languagesToLearn,
-            userIsActivie:userIsActivie    
+            userIsActivie:userIsActivie,
+            isAdmin:false  
         };
 
         let newUser = await User.create(temp);
@@ -265,13 +236,39 @@ const deleteUser = async (req, res, next) => {
     }
 }
 
+const loadUserInfoMenuDrawer = async (req, res, next) => {
+    try {
+        const user = await Helper.getUserIdFromAuthenticatedRequest(req);
+        const userID = user._id;
+        
+        // Check in each learn language the possible matchs, and save this users in a list
+
+        let numberOfRequests = await Match.countDocuments({"recipientUser":{$eq:userID},"status":{$eq:1}});
+        let currentActiveMatchesReceip = await Match.countDocuments({"recipientUser":{$eq:userID},"status":{$eq:2}});
+        let currentActiveMatchesRequest = await Match.countDocuments({"requesterUser":{$eq:userID},"status":{$eq:2}});
+    
+
+        return res.status(200).json({
+            // Create data section with language as key value of the users
+            'numberOfRequests': numberOfRequests,
+            'activeMatches': currentActiveMatchesReceip +currentActiveMatchesRequest,
+
+        });
+        
+    } catch (error) {
+        return res.status(500).json({
+            'code': 'SERVER_ERROR',
+            'description': 'something went wrong, Please try again'
+        });
+    }
+}
 
 
 module.exports = {
-    getUsers: getUsers,
     getUserInformation: getUserInformation,
     createUser: createUser,
     updateUser: updateUser,
     deleteUser: deleteUser,
-    checkIfUserAlreadyRegistered:checkIfUserAlreadyRegistered
+    checkIfUserAlreadyRegistered:checkIfUserAlreadyRegistered,
+    loadUserInfoMenuDrawer:loadUserInfoMenuDrawer
 }
