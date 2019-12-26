@@ -16,8 +16,7 @@ const proxy = httpProxy.createServer({});
 const loginStrategy = require('./loginStrategy')();
 
 // Front end Server url
-const frontEndURL = 'http://localhost:3001';
-const backEndURL = 'htpp://localhost:3000';
+const frontEndURL = 'https://www.unitandem.fi'; //localhost:3001
 
 module.exports = function () 
 {
@@ -25,27 +24,7 @@ module.exports = function ()
         create,
         start;
 
-    server.use(cors({origin: frontEndURL , credentials: true}));   
-    /*server.use(function (req, res, next) 
-    {
-
-        // Website you wish to allow to connect
-        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3001');
-    
-        // Request methods you wish to allow
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-    
-        // Request headers you wish to allow
-        res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-    
-        // Set to true if you need the website to include cookies in the requests sent
-        // to the API (e.g. in case you use sessions)
-        res.setHeader('Access-Control-Allow-Credentials', true);
-    
-        // Pass to next layer of middleware
-        next();
-    });*/
-
+    //server.use(cors({origin: frontEndURL , credentials: true}));   
     var appSession;
 
     create = (config, db) => {
@@ -70,9 +49,6 @@ module.exports = function ()
         server.use(express.static(path.join(__dirname,'public')));
         server.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 
-        //server.use(session({secret: 'stuff'})); 
-
-
         // set up passport
         // ============================================
 
@@ -85,6 +61,9 @@ module.exports = function ()
 
         server.use(appSession);
 
+        /**
+         * Function creates login strategy for application.
+         */
         loginStrategy.createLocalLogin(server);
 
         async function checkIfUserIsRegistered(userEmail){
