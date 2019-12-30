@@ -8,6 +8,10 @@ const session = require('express-session');
 const cors = require('cors')
 const chatServer = require('../chatServer');
 
+
+const schedule = require('node-schedule')
+const dailyFunctions = require('../dailyFunctions')
+
 var favicon = require('serve-favicon');
 
 const httpProxy = require('http-proxy');
@@ -187,6 +191,15 @@ module.exports = function ()
         });
 
         chatServer.start(app, appSession);
+
+
+        //Activate daily functions
+        schedule.scheduleJob('0 0 * * *', function(){
+            dailyFunctions.runDailyFunctions();
+        });
+
+
+        console.log("Daily functions running");
     };
     return {
         create: create,

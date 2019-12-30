@@ -1,13 +1,17 @@
-import schedule from 'node-schedule'
+//import schedule from 'node-schedule'
 const User = require('./models/user');
 
 
 
-var dailyFunctions = schedule.scheduleJob('0 0 * * *', function(){
-    console.log("[INFO] Running daily schedule functions");
-    oneMonthInactiveUsers();
-    
-  });
+// Make a list of functions to run and export the module
+const runDailyFunctions = async (req, res, next) => {
+    try {
+        oneMonthInactiveUsers();
+
+    } catch (error) {
+        // Nothing to do
+    }
+}
 
 
 // Set as inactive users that don't access the system in more than one month and send an info email.
@@ -36,5 +40,5 @@ const oneYearInactiveUsers = async (req, res, next) => {
 }
 
 module.exports = {
-    dailyFunctions: dailyFunctions
+    runDailyFunctions: runDailyFunctions
 }
