@@ -1,9 +1,9 @@
 //import schedule from 'node-schedule'
 const User = require('./models/user');
+const Email = require('./email')
 
 
-
-// Make a list of functions to run and export the module
+// Make a set of functions to run and export the module to the server
 const runDailyFunctions = async (req, res, next) => {
     try {
         oneMonthInactiveUsers();
@@ -19,10 +19,22 @@ const oneMonthInactiveUsers = async (req, res, next) => {
     try {
         // Set one month as the cutoff date
         var cutoff = new Date();
-        cutoff.setDate(cutoff.getDate()-31);
+        cutoff.setDate(cutoff.getDate() - 31);
 
-        // Update users where the date is greater than the defined cutoff
-        User.updateMany( { "lastUserAccess": {$gt: cutoff}}, { $set: { userIsActivie: false } } )
+        var inactiveUsers = User.find({
+            "lastUserAccess": {
+                $gt: cutoff
+            }
+        })
+
+        for (i = 0; i < (await inactiveUsers).length; i++) {
+            let user = inactiveUsers[i];
+            User.findByIdAndUpdate(user._id, {
+                userIsActivie: false
+            });
+            Email.sendEmailInactiveAccountOneMonth(user);
+        }
+
     } catch (error) {
         // Nothing to do
     }
