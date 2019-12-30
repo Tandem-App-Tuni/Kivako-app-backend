@@ -32,6 +32,20 @@ const getUserInfoWithEmail = async (req, res, next) => {
     return user;
 }
 
+const getUserUniversityWithEmail= async (email) => {
+    const userUniversity = "";
+    const emailDomain = email.replace(/.*@/, "");
+
+    userUniversity = searchByKey(Universities, emailDomain);
+
+    return userUniversity;
+}
+
+function searchByKey(object, key) {
+    return object[key];
+}
+
+
 
 module.exports = {
     getUserIdFromAuthenticatedRequest: getUserIdFromAuthenticatedRequest,
