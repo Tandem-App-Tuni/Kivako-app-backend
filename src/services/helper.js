@@ -1,5 +1,6 @@
 const User = require('../models/user');
 const session = require('express-session');
+const UniversityList = require('./constants/universities')
 
 const getUserLoggedInfoWithEmail = async (req, res, next) => {
     //const email = req.session.passport.user.email;
@@ -33,10 +34,10 @@ const getUserInfoWithEmail = async (req, res, next) => {
 }
 
 const getUserUniversityWithEmail= async (email) => {
-    const userUniversity = "";
-    const emailDomain = email.replace(/.*@/, "");
+    let userUniversity = "";
+    let emailDomain = email.replace(/.*@/, "");
 
-    userUniversity = searchByKey(Universities, emailDomain);
+    userUniversity = searchByKey(UniversityList, emailDomain);
 
     return userUniversity;
 }
@@ -50,5 +51,6 @@ function searchByKey(object, key) {
 module.exports = {
     getUserIdFromAuthenticatedRequest: getUserIdFromAuthenticatedRequest,
     getUserInfoWithEmail:getUserInfoWithEmail,
-    getUserLoggedInfoWithEmail:getUserLoggedInfoWithEmail
+    getUserLoggedInfoWithEmail:getUserLoggedInfoWithEmail,
+    getUserUniversityWithEmail:getUserUniversityWithEmail
 }
