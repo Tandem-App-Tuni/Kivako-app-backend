@@ -11,13 +11,11 @@ var transporter = nodemailer.createTransport({
    });
 
 
-const sendEmailNewMatchRequest = async (info, res, next) => {
-    console.log("sending to ")
-    console.log(info.email)
+const sendEmailNewMatchRequestReceived = async (user, res, next) => {
 
     const mailOptions = {
         from: 'unitandem.noreply@gmail.com', // sender address
-        to: info.email, // list of receivers
+        to: user.email, // list of receivers
         subject: 'Unitandem, new match request!', // Subject line
         html: 'Hi, you received a new match request!'
       };
@@ -33,9 +31,9 @@ const sendEmailNewMatchRequest = async (info, res, next) => {
 const sendEmailAcceptedMatchRequest = async (user, res, next) => {
     const mailOptions = {
         from: 'unitandem.noreply@gmail.com', // sender address
-        to: user.email, // list of receivers
-        subject: 'Unitandem, new match request!', // Subject line
-        html: 'Hi, your match request have been accepted!'
+        to: user.email, // Receiver
+        subject: 'Unitandem, match request accepted!', // Subject line
+        html: 'Hi, your match request have been accepted! Log in the system and start to talk!'
       };
 
     transporter.sendMail(mailOptions, function (err, info) {
@@ -46,12 +44,12 @@ const sendEmailAcceptedMatchRequest = async (user, res, next) => {
      });
 }
 
-const sendEmailInactiveAccountOneMonth = async (info, res, next) => {
+const sendEmailInactiveAccountOneMonth = async (user, res, next) => {
     const mailOptions = {
         from: 'unitandem.noreply@gmail.com', // sender address
-        to: info.userEmail, // list of receivers
-        subject: 'Unitandem, new match request!', // Subject line
-        html: 'Hi,you have been inactive for more than 1 year! Log again to be an active user!'
+        to: user.email, // Receiver
+        subject: 'Hey! We miss you!', // Subject line
+        html: 'Hi,you have been inactive for more than 1 month! Log again to be an active user and keep receiving match requests!'
       };
 
     transporter.sendMail(mailOptions, function (err, info) {
@@ -61,11 +59,30 @@ const sendEmailInactiveAccountOneMonth = async (info, res, next) => {
           console.log(info);
      });
 }
+
+
+const sendEmailInactiveAccountOneYear = async (user, res, next) => {
+    const mailOptions = {
+        from: 'unitandem.noreply@gmail.com', // sender address
+        to: user.email, // Receiver
+        subject: 'Unitandem, new match request!', // Subject line
+        html: 'Hi,you have been inactive for more than 1 year! All your data have been erased from the system!'
+      };
+
+    transporter.sendMail(mailOptions, function (err, info) {
+        if(err)
+          console.log(err)
+        else
+          console.log(info);
+     });
+}
+
 
 
 module.exports =
 {
-    sendEmailNewMatchRequest:sendEmailNewMatchRequest,
+    sendEmailNewMatchRequestReceived:sendEmailNewMatchRequestReceived,
     sendEmailAcceptedMatchRequest:sendEmailAcceptedMatchRequest,
-    sendEmailInactiveAccountOneMonth:sendEmailInactiveAccountOneMonth
+    sendEmailInactiveAccountOneMonth:sendEmailInactiveAccountOneMonth,
+    sendEmailInactiveAccountOneYear:sendEmailInactiveAccountOneYear
 };
