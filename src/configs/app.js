@@ -1,30 +1,26 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const cors = require('cors')
 const chatServer = require('../chatServer');
-
-
 const schedule = require('node-schedule')
 const dailyFunctions = require('../dailyFunctions')
-
 var favicon = require('serve-favicon');
-
 const httpProxy = require('http-proxy');
 const proxy = httpProxy.createServer({});
 
 const loginStrategy = require('./loginStrategy')();
 
+const constants = require('./constants')
+
 // Front end Server url
 
-const frontEndURL = 'https://www.unitandem.fi'; //localhost:3001
-//const frontEndURL = 'http://localhost:3001';
-const adminFrontEndURL = 'http://localhost:3002';
-const smlAuthenticationProvider = 'http://localhost:8080';
+const frontEndURL = constants.frontEndURL;//'https://www.unitandem.fi'; //localhost:3001
+const adminFrontEndURL = constants.adminFrontEndURL;//'http://localhost:3002';
+const smlAuthenticationProvider = constants.smlAuthenticationProvider;//'http://localhost:8080';
 
 module.exports = function () 
 {
@@ -92,7 +88,14 @@ module.exports = function ()
         /**
          * Function creates login strategy for application.
          */
-        loginStrategy.createLocalLogin(server);
+        if(constants.localLoginStrategy){
+            // Use local login strategy
+            loginStrategy.createLocalLogin(server);
+        }else{
+            // Use HAKA login strategy
+            loginStrategy.createSAMLLogin(server);
+        }
+
 
         async function checkIfUserIsRegistered(userEmail){
             const User = require('../models/user');
