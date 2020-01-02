@@ -4,7 +4,7 @@ var SamlStrategy = require('passport-saml').Strategy;
 var LocalStrategy = require('passport-local').Strategy;
 var saml = require('passport-saml');
 var passwordHash = require('password-hash');
-const Credentials = require('../models/credentials');
+//const Credentials = require('../models/credentials');
 const User = require('../models/user');
 
 
