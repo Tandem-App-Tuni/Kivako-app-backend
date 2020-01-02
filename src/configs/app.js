@@ -113,8 +113,15 @@ module.exports = function () {
                     //res.redirect(frontEndURL + '/register');
                     res.send('/register');
                 } else {
-                    console.log("[DEBUG]User already registered")
-                    res.send('/browse-match');
+                    if(userAlreadyRegistered.isAdmin){
+                        // Redirect to admin system initial page
+                        res.send('/list-admins')
+                    }else{
+                        // Redirect to normal system initial page 
+                        res.send('/browse-match');
+                    }
+                    //console.log("[DEBUG]User already registered")
+                    
                 }
             } else {
                 res.send('/');
