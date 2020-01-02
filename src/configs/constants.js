@@ -4,7 +4,7 @@
 // To access the hostname and port settings, access the file config
 
 // URL's
-const frontEndURL = 'https://www.unitandem.fi'; //'http://localhost:3001'
+const frontEndURL = 'http://localhost:3001'//'https://www.unitandem.fi'; //'http://localhost:3001'
 const adminFrontEndURL = 'http://localhost:3002';
 const smlAuthenticationProvider = 'http://localhost:8080';
 

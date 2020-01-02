@@ -33,18 +33,22 @@ const getUserInfoWithEmail = async (req, res, next) => {
     return user;
 }
 
+//TODO -> CHANGE THIS TO BE A REFERENCE OF CONSTANT UNIVERSITIES FILE
+const universities = {
+    "tuni.fi":"Tampere Universities",
+    "test.fi":"Test Universities",
+    "test2.fi":"Test Universities 2",
+};
+
 const getUserUniversityWithEmail= async (email) => {
     let userUniversity = "";
     let emailDomain = email.replace(/.*@/, "");
-
-    userUniversity = searchByKey(UniversityList, emailDomain);
+    
+    userUniversity = universities[emailDomain]
 
     return userUniversity;
 }
 
-function searchByKey(object, key) {
-    return object[key];
-}
 
 
 

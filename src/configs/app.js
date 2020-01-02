@@ -16,176 +16,155 @@ const loginStrategy = require('./loginStrategy')();
 
 const constants = require('./constants')
 
-// Front end Server url
 
-const frontEndURL = constants.frontEndURL;//'https://www.unitandem.fi'; //localhost:3001
-const adminFrontEndURL = constants.adminFrontEndURL;//'http://localhost:3002';
-const smlAuthenticationProvider = constants.smlAuthenticationProvider;//'http://localhost:8080';
+// Front end Server URL's
+const frontEndURL = constants.frontEndURL; //'https://www.unitandem.fi'; //localhost:3001
+const adminFrontEndURL = constants.adminFrontEndURL; //'http://localhost:3002';
+const smlAuthenticationProvider = constants.smlAuthenticationProvider; //'http://localhost:8080';
 
-module.exports = function () 
-{
+module.exports = function () {
     let server = express(),
         create,
         start;
 
+    var allowedOrigins = [frontEndURL, adminFrontEndURL, smlAuthenticationProvider];
+    server.use(cors({
+        credentials: true,
+        origin: function (origin, callback) {
+            console.log(origin)
+            // allow requests with no origin 
+            // (like mobile apps or curl requests)
+            if (!origin) return callback(null, true);
 
-        var allowedOrigins = [frontEndURL, adminFrontEndURL, smlAuthenticationProvider];
-        server.use(cors({credentials: true,
-            origin: function(origin, callback){
-                console.log(origin)
-                // allow requests with no origin 
-                // (like mobile apps or curl requests)
-                if(!origin) return callback(null, true);
-
-                if(allowedOrigins.indexOf(origin) === -1){
-                    var msg = 'The CORS policy for this site does not ' +
+            if (allowedOrigins.indexOf(origin) === -1) {
+                var msg = 'The CORS policy for this site does not ' +
                     'allow access from the specified Origin.';
-                    return callback(new Error(msg), false);
-                }
-                return callback(null, true);
+                return callback(new Error(msg), false);
             }
-        }));
-
-    //server.use(cors());   
-    //server.use(cors({credentials: true, origin: 'http://localhost:3001'}));
+            return callback(null, true);
+        }
+    }));
 
     var appSession;
 
     create = (config, db) => {
         let routes = require('../routes');
-    
-        // set all the server things
+
+        // Set the server variables
         server.set('env', config.env);
         server.set('port', config.port);
         server.set('hostname', config.hostname);
 
-        server.set('views',path.join(__dirname,'views'));
+        server.set('views', path.join(__dirname, 'views'));
         server.set('view engine', 'jade');
-        
-        // add middleware to parse the json
+
+        // Add the middleware to parse the JSON's
         server.use(bodyParser.json());
         server.use(bodyParser.urlencoded({
             extended: false
         }));
 
-        server.use(express.urlencoded({extended:false}));
+        server.use(express.urlencoded({
+            extended: false
+        }));
         server.use(cookieParser());
-        server.use(express.static(path.join(__dirname,'public')));
+        server.use(express.static(path.join(__dirname, 'public')));
         server.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 
-        // set up passport
-        // ============================================
-
-        appSession = session({// TODO -> CHANGE SECRET TO SECURE FILE
+        // Set up passport env
+        appSession = session({ // TODO -> CHANGE SECRET TO SECURE FILE
             secret: 'stuff',
             proxy: true,
             resave: true,
             saveUninitialized: true
         });
-
         server.use(appSession);
 
-        /**
-         * Function creates login strategy for application.
-         */
-        if(constants.localLoginStrategy){
+        // Function creates the login strategy for application.
+        if (constants.localLoginStrategy) {
             // Use local login strategy
             loginStrategy.createLocalLogin(server);
-        }else{
+        } else {
             // Use HAKA login strategy
             loginStrategy.createSAMLLogin(server);
         }
 
 
-        async function checkIfUserIsRegistered(userEmail){
+        // Set initial LOGIN routes
+        async function checkIfUserIsRegistered(userEmail) {
             const User = require('../models/user');
+            let user = User.findOne({
+                "email": userEmail
+            });
 
-            let user = User.findOne({"email": userEmail});
-            
             return user;
-
         }
 
-        server.get('/login/check', async function(req,res)
-        {
+        server.get('/login/check', async function (req, res) {
             let userAuthenticaded = req.isAuthenticated();
             console.log('/login/check -> Checking authentication:', userAuthenticaded, req.user);
 
-            if(userAuthenticaded)
-            {
+            if (userAuthenticaded) {
                 let userAlreadyRegistered = await checkIfUserIsRegistered(req.user.email);
 
-                if(userAlreadyRegistered===null){
+                if (userAlreadyRegistered === null) {
                     //User not registered
                     console.log("[DEBUG]User not registered, redirecting to register page")
                     //res.redirect(frontEndURL + '/register');
                     res.send('/register');
-                }
-                else
-                {
+                } else {
                     console.log("[DEBUG]User already registered")
                     res.send('/browse-match');
                 }
-                    // IN CASE REACT APP RUNNING IN OTHER PORT CHANGE IT
-            }
-            else
-            {
+            } else {
                 res.send('/');
             }
-            
+
         });
-        
-        server.get('/login/redirected', function(req,res)
-        {
+
+        server.get('/login/redirected', function (req, res) {
             res.send(req.isAuthenticated());
         });
 
-        server.get('/isAuthenticated', function(req,res)
-        {
-            if(req.isAuthenticated())
-            {
+        server.get('/isAuthenticated', function (req, res) {
+            if (req.isAuthenticated()) {
                 return res.status(200).json({
                     'isAuthenticated': req.isAuthenticated(),
                     'email': req.user.email
                 });
-            }
-            else
-            {
+            } else {
                 res.status(403).json({
                     'message': 'access denied'
                 });
             }
         });
 
-        server.get('/logout', function(req, res)
-        {
+        server.get('/logout', function (req, res) {
             req.logout();
             res.redirect(frontEndURL + '/');
         });
-        // =============================================
 
 
-        //connect the database
+        // Connect to the MongoDB database using mongoose.
         mongoose.connect(
-            db.database,
-            { 
+            db.database, {
                 useNewUrlParser: true,
                 useCreateIndex: true,
-                useUnifiedTopology: true, 
+                useUnifiedTopology: true,
             }
         );
         mongoose.set('useFindAndModify', false);
         const connection = mongoose.connection;
         connection.once('open', () => {
-        console.log("MongoDB database connection established successfully");
+            console.log("MongoDB database connection established successfully");
         })
 
-                
-        // Set up routes
+
+        // Set up the routes
         routes.init(server);
     };
 
-    
+
     start = () => {
         let hostname = server.get('hostname'),
             port = server.get('port');
@@ -195,15 +174,14 @@ module.exports = function ()
 
         chatServer.start(app, appSession);
 
-
-        //Activate daily functions
-        schedule.scheduleJob('0 0 * * *', function(){
+        // Activate daily schedule functions
+        schedule.scheduleJob('0 0 * * *', function () {
             dailyFunctions.runDailyFunctions();
         });
 
-
-        console.log("Daily functions running");
+        console.log("[INFO] Daily functions running succesfully!");
     };
+
     return {
         create: create,
         start: start

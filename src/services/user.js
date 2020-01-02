@@ -4,15 +4,15 @@
 ********/
 const express = require('express');
 const User = require('../models/user');
-
+var passwordHash = require('password-hash');
+const Helper = require('./helper')
 
 
 const checkIfUserAlreadyRegistered = async (req, res, next) => {
 
     try {
         
-        console.log("[DEBUG]Checking if user " + req.user.email + " is already registered!");
-        
+        //console.log("[DEBUG]Checking if user " + req.user.email + " is already registered!");
         if(req.user.email){
             const email = req.user.email;
 
@@ -42,7 +42,7 @@ const checkIfUserAlreadyRegistered = async (req, res, next) => {
         
 
     } catch (error) {
-        console.log("[ERROR]Error during check if user " + req.user.email + " is already registered!");
+        //console.log("[ERROR]Error during check if user " + req.user.email + " is already registered!");
         return res.status(404).json({
             'code': 'SERVER_ERROR',
             'description': 'something went wrong, Please try again'
@@ -91,7 +91,8 @@ const createUser = async (req, res, next) => {
             languagesToTeach,
             languagesToLearn,
             userIsActivie,
-            isAdmin
+            isAdmin,
+            password
         } = req.body;
 
 
@@ -107,8 +108,6 @@ const createUser = async (req, res, next) => {
             "email": email
         });
     
-        //console.log("teste");
-        //console.log(isEmailExists._id)
 
         if (isEmailExists) {
             return res.status(409).json({
@@ -117,6 +116,10 @@ const createUser = async (req, res, next) => {
                 'field': 'email'
             });
         }
+
+
+        let hashedPassword = passwordHash.generate(password);
+        let userUniversity = await Helper.getUserUniversityWithEmail(email)
 
         const temp = {
             firstName:firstName,
@@ -127,7 +130,9 @@ const createUser = async (req, res, next) => {
             languagesToTeach:languagesToTeach,
             languagesToLearn:languagesToLearn,
             userIsActivie:userIsActivie,
-            isAdmin:false  
+            isAdmin:false,
+            password:hashedPassword,
+            university:userUniversity
         };
 
         let newUser = await User.create(temp);
@@ -149,17 +154,13 @@ const createUser = async (req, res, next) => {
 
 const updateUser = async (req, res, next) => {
     try {
-        console.log("função chamada");
         const userEmail = req.user.email;
 
-        console.log(userEmail)
         let user = await User.findOne({
             "email": userEmail
         });
-        console.log(user)
+
         const userId = user._id;
-        console.log("user id");
-        console.log(userId)
 
         const {
             firstName,
