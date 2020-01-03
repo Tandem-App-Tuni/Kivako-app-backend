@@ -18,7 +18,7 @@ router.get('/drawer', auth.isAuthenticated, userService.loadUserInfoMenuDrawer);
 
 // Register a new user
 //http://localhost:3000/api/v1/users/add //POST REQUEST
-router.post('/add', auth.isAuthenticated, userService.createUser);
+router.post('/add', userService.createUser);
 
 // Update informations related to the user
 // TODO -> Maybe is better change it to email instead of the id

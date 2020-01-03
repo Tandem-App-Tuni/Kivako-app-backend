@@ -17,7 +17,7 @@ router.get('/studentUsers', auth.checkIfUserIsAuthenticatedAndAdmin, adminServic
 router.get('/adminUsers', auth.checkIfUserIsAuthenticatedAndAdmin, adminService.getAdminUsers);
 
 //Register an admin user in the system
-//http://localhost:3000/api/v1/admin/adminUsers // GET REQUEST
+//http://localhost:3000/api/v1/admin/add // POST REQUEST
 router.post('/add', auth.checkIfUserIsAuthenticatedAndAdmin, adminService.createAdminUser);
 
 module.exports = router;

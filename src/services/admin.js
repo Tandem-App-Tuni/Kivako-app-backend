@@ -4,6 +4,7 @@
 const express = require('express');
 const User = require('../models/user');
 const Match = require('../models/match');
+var passwordHash = require('password-hash');
 
 
 const getLanguageStatitics = async (req, res, next) => {
@@ -120,7 +121,8 @@ const createAdminUser = async (req, res, next) => {
             descriptionText,
             languagesToTeach,
             languagesToLearn,
-            userIsActivie
+            userIsActivie,
+            password
         } = req.body;
 
         if (email === undefined || email === '') {
@@ -130,7 +132,7 @@ const createAdminUser = async (req, res, next) => {
                 'field': 'email'
             });
         }
-
+        
         let isEmailExists = await User.findOne({
             "email": email
         });
@@ -143,6 +145,8 @@ const createAdminUser = async (req, res, next) => {
             });
         }
 
+        let hashedPassword = passwordHash.generate(password);
+
         const temp = {
             firstName: firstName,
             lastName: lastName,
@@ -152,7 +156,8 @@ const createAdminUser = async (req, res, next) => {
             languagesToTeach: languagesToTeach,
             languagesToLearn: languagesToLearn,
             userIsActivie: userIsActivie,
-            isAdmin: true
+            isAdmin: true,
+            password:hashedPassword
         };
 
         let newUser = await User.create(temp);
