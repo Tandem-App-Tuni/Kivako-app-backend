@@ -8,6 +8,10 @@ let router = express.Router();
 //http://localhost:3000/api/v1/admin/statitics // GET REQUEST
 router.get('/statitics', auth.checkIfUserIsAuthenticatedAndAdmin, adminService.getLanguageStatitics);
 
+//Get a list with statitics related to the languages // OPEN END POINT
+//http://localhost:3000/api/v1/admin/statiticsOpen // GET REQUEST
+router.get('/statiticsOpen', adminService.getLanguageStatitics);
+
 //Get a list of all student users in system
 //http://localhost:3000/api/v1/admin/studentUsers // GET REQUEST
 router.get('/studentUsers', auth.checkIfUserIsAuthenticatedAndAdmin, adminService.getStudentUsers);
@@ -17,7 +21,7 @@ router.get('/studentUsers', auth.checkIfUserIsAuthenticatedAndAdmin, adminServic
 router.get('/adminUsers', auth.checkIfUserIsAuthenticatedAndAdmin, adminService.getAdminUsers);
 
 //Register an admin user in the system
-//http://localhost:3000/api/v1/admin/adminUsers // GET REQUEST
+//http://localhost:3000/api/v1/admin/add // POST REQUEST
 router.post('/add', auth.checkIfUserIsAuthenticatedAndAdmin, adminService.createAdminUser);
 
 module.exports = router;

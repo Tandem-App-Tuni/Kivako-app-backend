@@ -6,13 +6,11 @@ const Room = require('./models/room.js');
 // Total number of users currently online and chating.
 var totalUserOnline = 0;
 
-var incrementTotalUserCount = function()
-{
+var incrementTotalUserCount = function () {
     totalUserOnline++;
 }
 
-var decreaseTotalUserCount = function()
-{
+var decreaseTotalUserCount = function () {
     totalUserOnline--;
 
     if (totalUserOnline < 0) console.log('Total user count is below 0...report this to the maintainer!');
@@ -29,14 +27,12 @@ var decreaseTotalUserCount = function()
  * @param {*} server The express server, cupling the http server with socket.io
  * @param {*} session The session of the server, shared with socket.io
  */
-var start = function(server, session)
-{
+var start = function (server, session) {
     var shrdSession = require("express-socket.io-session");
     var io = require('socket.io').listen(server);
     io.use(shrdSession(session));
 
-    io.on('connection', (socket) =>
-    {
+    io.on('connection', (socket) => {
         var passportSession = socket.handshake.session.passport;
 
         console.log('Trying to create connection...');
@@ -46,45 +42,49 @@ var start = function(server, session)
          * Appropriate objects are created and sent to the client
          * for displaying.
          */
-        if ((typeof passportSession) != 'undefined')
-        {
+        if ((typeof passportSession) != 'undefined') {
             let userId = passportSession.user.email;
 
-            User.findOne({email: userId}).then((userData) => 
-            {
-                if (!userData)
-                {
+            User.findOne({
+                email: userId
+            }).then((userData) => {
+                if (!userData) {
                     console.log('Did not find user with email:', userId, 'Report this to the mantainer!');
                     socket.disconnect();
                     return;
                 }
 
-                userData.rooms.forEach((roomId, index) => 
-                {
+                userData.rooms.forEach((roomId, index) => {
                     let secondUserId;
-                    roomId.split('|').forEach((element) => 
-                    {
+                    roomId.split('|').forEach((element) => {
                         if (element != userId) secondUserId = element;
                     });
 
-                    Room.findOne({roomId:roomId}).then((roomData) => 
-                    {
-                        if (!roomData)
-                        {
+                    Room.findOne({
+                        roomId: roomId
+                    }).then((roomData) => {
+                        if (!roomData) {
                             console.log('Did not find room with id:', element, 'Report this to the mantainer!');
                             socket.disconnect();
                             return;
                         }
 
-                        User.findOne({email: secondUserId}).then((secondUserData) => 
-                        {
-                            if (!secondUserData)
-                            {
+                        User.findOne({
+                            email: secondUserId
+                        }).then((secondUserData) => {
+                            if (!secondUserData) {
                                 console.log('Did not find second user with email:', secondUserData.email, 'Report this to the mantainer!');
                                 return;
                             }
 
-                            socket.emit('initialization', {user: userId, roomInformation: {roomId: roomId, messages: roomData.messages}, name: secondUserData.firstName + ' ' + secondUserData.lastName});
+                            socket.emit('initialization', {
+                                user: userId,
+                                roomInformation: {
+                                    roomId: roomId,
+                                    messages: roomData.messages
+                                },
+                                name: secondUserData.firstName + ' ' + secondUserData.lastName
+                            });
                         });
                     });
                 });
@@ -94,9 +94,7 @@ var start = function(server, session)
                 console.log('User email: ' + userId);
                 console.log('User connected sucessfully!');
             });
-        }
-        else
-        {
+        } else {
             console.log('Disconnecting unauthorised client connection!');
             socket.disconnect();
         }
@@ -104,8 +102,7 @@ var start = function(server, session)
         /**
          * Functino listens to socket disconnection events.
          * */
-        socket.on('disconnect', function () 
-        {
+        socket.on('disconnect', function () {
             let userId = passportSession.user.email;
 
             decreaseTotalUserCount();
@@ -120,24 +117,25 @@ var start = function(server, session)
          * Also sends the room messages object to the client in case unbuffered
          * messages were sent when he/she was not subscribed to the room.
          */
-        socket.on('subscribe', function (data) 
-        {
+        socket.on('subscribe', function (data) {
             console.log('Channel subscription request: ' + data.from, data.to + ' -> ' + passportSession.user.email);
 
             if (data.from != 'null') socket.leave(data.from);
-            if (data.to != 'null') 
-            {
+            if (data.to != 'null') {
                 socket.join(data.to);
 
-                Room.findOne({roomId: data.to}).then((roomData) => 
-                {
-                    if (!roomData)
-                    {
+                Room.findOne({
+                    roomId: data.to
+                }).then((roomData) => {
+                    if (!roomData) {
                         console.log('Room with ID', data.to, 'not found!');
                         return;
                     }
 
-                    socket.emit('roomUpdate', {roomId: data.to, room: roomData});
+                    socket.emit('roomUpdate', {
+                        roomId: data.to,
+                        room: roomData
+                    });
                 });
             }
         });
@@ -147,16 +145,21 @@ var start = function(server, session)
          * The message is stored in the room object and emited
          * to all clients listening on the room.
          */
-        socket.on('message', function(data) 
-        {
+        socket.on('message', function (data) {
             var user = data.user;
             var message = data.message;
             var roomId = data.roomId;
 
             console.log('Message recieved from user', user, 'from room', roomId, '->', message);
-            
+
             socket.to(roomId).emit('message', message);
-            Room.findOneAndUpdate({roomId: roomId}, {$push: {messages: message}}).exec();
+            Room.findOneAndUpdate({
+                roomId: roomId
+            }, {
+                $push: {
+                    messages: message
+                }
+            }).exec();
         });
     });
 
@@ -164,7 +167,6 @@ var start = function(server, session)
 };
 
 
-module.exports =
-{
-    start:start
+module.exports = {
+    start: start
 };

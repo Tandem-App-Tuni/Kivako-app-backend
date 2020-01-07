@@ -16,6 +16,11 @@ var userSchema = new mongoose.Schema({
       type: String,
       required: true
   },
+  password:
+  {
+      type: String,
+      required: true
+  },
   cities: {
       type: [String]
   },
@@ -52,6 +57,9 @@ var userSchema = new mongoose.Schema({
       type: Boolean,
       required:true,
       default:false
+  },
+  university:{
+      type:String
   }
 });
 

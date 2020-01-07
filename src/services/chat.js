@@ -1,9 +1,7 @@
-function partnersrequests(req, res, next) 
-{
+function partnersrequests(req, res, next) {
     res.send('Hello');
 };
 
-module.exports =
-{
-    partnersrequests:partnersrequests
+module.exports = {
+    partnersrequests: partnersrequests
 };
