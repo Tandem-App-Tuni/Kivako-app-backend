@@ -12,12 +12,13 @@ const smlAuthenticationProvider = 'http://localhost:8080';
 // LOGIN STRATEGY
 const localLoginStrategy = true; // If you want to use HAKA login strategy, set this constant to false.
 
-
-
+// MATCHES LIMIT
+const maxMatchCount = 10;
 
 module.exports = {
     frontEndURL: frontEndURL,
     adminFrontEndURL: adminFrontEndURL,
     smlAuthenticationProvider: smlAuthenticationProvider,
-    localLoginStrategy:localLoginStrategy
+    localLoginStrategy:localLoginStrategy,
+    maxMatchCount: maxMatchCount
 };

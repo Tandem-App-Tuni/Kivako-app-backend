@@ -9,14 +9,16 @@ var mongoose = require('mongoose');
 
 // Chat database structures
 const Room = require('../models/room.js');
-
+const Constants = require('../configs/constants.js');
 
 const getPossibleMatchUsers = async (req, res, next) => {
     try {
 
+        console.log('Trying to get user information!');
+
         //Get user request informations
         const userInfo = await Helper.getUserLoggedInfoWithEmail(req);
-        //console.log(userInfo.email)
+        //console.log(userInfo)
 
         // Get user informations to be used in search match database query
         const userLearnLanguages = userInfo.languagesToLearn;
@@ -24,6 +26,8 @@ const getPossibleMatchUsers = async (req, res, next) => {
 
         let usersList = [];
         let languagesList = [];
+
+        console.log('User matches number:', userInfo.matches.length, Constants.maxMatchCount);
 
         // Check in each learn language the possible matchs, and save this users in a list
         for (i = 0; i < userLearnLanguages.length; i++) {
@@ -54,6 +58,14 @@ const getPossibleMatchUsers = async (req, res, next) => {
             users = null;
         }
 
+        if (userInfo.matches.length >= Constants.maxMatchCount)
+        {
+            return res.status(404).json({
+                'code': 'BAD_REQUEST_ERROR',
+                'description': 'You have exceeded the maximal match count limit.'
+            });
+        }
+
         let sendArrayFormated = [];
         for (i = 0; i < languagesList.length; i++) {
             sendArrayFormated.push({
@@ -74,7 +86,10 @@ const getPossibleMatchUsers = async (req, res, next) => {
             'code': 'BAD_REQUEST_ERROR',
             'description': 'No users found in match :(. Update your settings to have more chances :)!'
         });
-    } catch (error) {
+    } catch (error) 
+    {
+        console.log('Error:', error);
+
         return res.status(500).json({
             'code': 'SERVER_ERROR',
             'description': 'something went wrong, Please try again'
@@ -161,6 +176,15 @@ const sendNewMatchRequest = async (req, res, next) => {
         const requesterUser = await Helper.getUserIdFromAuthenticatedRequest(req);
         const requesterUserID = requesterUser._id;
 
+        if (requesterUser.matches.length >= Constants.maxMatchCount)
+        {
+            return res.status(201).json(
+            {
+                'requested': false,
+                'status': 'fail'
+            });
+        }
+
         const recipientUserID = mongoose.Types.ObjectId(req.body.recipientID);
 
         // Check if a request for this user already exists
@@ -218,6 +242,17 @@ const sendNewMatchRequest = async (req, res, next) => {
 const acceptNewMatchRequest = async (req, res, next) => {
     try {
         // Receipt user accept the match
+        const user = await Helper.getUserIdFromAuthenticatedRequest(req);
+
+        if (user.matches.length >= Constants.maxMatchCount)
+        {
+            return res.status(201).json(
+                {
+                    'requested': false,
+                    'status': 'fail'
+                }); 
+        }
+
         const matchId = req.params.matchId;
         const matchExists = await Match.findById(matchId);
 

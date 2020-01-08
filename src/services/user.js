@@ -80,7 +80,6 @@ const getUserInformation = async (req, res, next) => {
 
 const createUser = async (req, res, next) => {
     try {
-
         const {
             firstName,
             lastName,
@@ -95,11 +94,22 @@ const createUser = async (req, res, next) => {
         } = req.body;
 
 
-        if (email === undefined || email === '') {
+        if (email === undefined || email === '') 
+        {
             return res.status(422).json({
                 'code': 'REQUIRED_FIELD_MISSING',
                 'description': 'email is required',
                 'field': 'email'
+            });
+        }
+
+        if (password == undefined || password.length < 6)
+        {
+            return res.status(422).json(
+            {
+                'code': 'PASSWORD_TOO_SHORT',
+                'description': 'Password has to be longer than 5 characters',
+                'field': 'password'
             });
         }
 

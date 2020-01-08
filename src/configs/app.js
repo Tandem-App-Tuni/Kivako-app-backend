@@ -129,11 +129,13 @@ module.exports = function () {
 
         });
 
-        server.get('/login/redirected', function (req, res) {
+        server.get('/login/redirected', function (req, res) 
+        {
             res.send(req.isAuthenticated());
         });
 
-        server.get('/isAuthenticated', function (req, res) {
+        server.get('/isAuthenticated', function (req, res) 
+        {
             if (req.isAuthenticated()) {
                 return res.status(200).json({
                     'isAuthenticated': req.isAuthenticated(),
