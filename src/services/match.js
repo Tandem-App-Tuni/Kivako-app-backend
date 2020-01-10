@@ -1,7 +1,6 @@
 /********
  * match.js file (services/matchs)
  ********/
-const express = require('express');
 const User = require('../models/user');
 const Helper = require('./helper');
 const Match = require('../models/match');
@@ -13,8 +12,7 @@ const Constants = require('../configs/constants.js');
 
 const getPossibleMatchUsers = async (req, res, next) => {
     try {
-
-        console.log('Trying to get user information!');
+        console.log('Retrieving possible matches...');
 
         //Get user request informations
         const userInfo = await Helper.getUserLoggedInfoWithEmail(req);
@@ -24,10 +22,26 @@ const getPossibleMatchUsers = async (req, res, next) => {
         const userLearnLanguages = userInfo.languagesToLearn;
         const userID = userInfo._id;
 
+        let filterIds = [userID];
         let usersList = [];
         let languagesList = [];
 
+        console.log('User ID:', userID);
+
+        for (i = 0; i < userInfo.matches.length; i++)
+        {
+            const match = await Match.findById(userInfo.matches[i]);
+
+            if (match)
+            {
+                if (userID.equals(match.requesterUser)) filterIds.push(match.recipientUser);
+                else if (userID.equals(match.recipientUser)) filterIds.push(match.requesterUser);
+                else console.log('Impossible match!');
+            }
+        }
+
         console.log('User matches number:', userInfo.matches.length, Constants.maxMatchCount);
+        console.log('Unwanted ids:', filterIds);
 
         // Check in each learn language the possible matchs, and save this users in a list
         for (i = 0; i < userLearnLanguages.length; i++) {
@@ -38,7 +52,7 @@ const getPossibleMatchUsers = async (req, res, next) => {
             let users = await User.find({
                 "languagesToTeach.language": userLearnLanguages[i].language,
                 "_id": {
-                    $ne: userID
+                    $nin: filterIds
                 }
             }, {
                 userIsActivie: 0,
@@ -47,11 +61,14 @@ const getPossibleMatchUsers = async (req, res, next) => {
                 matches: 0
             }); //Fields that will not be returned in result
 
-            if (users == []) {
+            if (users == []) 
+            {
                 // Nothing to do
                 usersList.push([]);
                 //console.log("No potential match users in this language");
-            } else {
+            } 
+            else 
+            {
                 // Add possible match users to list
                 usersList.push(users);
             }
@@ -240,7 +257,8 @@ const sendNewMatchRequest = async (req, res, next) => {
 }
 
 const acceptNewMatchRequest = async (req, res, next) => {
-    try {
+    try 
+    {
         // Receipt user accept the match
         const user = await Helper.getUserIdFromAuthenticatedRequest(req);
 
@@ -265,7 +283,7 @@ const acceptNewMatchRequest = async (req, res, next) => {
 
         let temp = {
             status: 2, // Status 2 -> Accepted 
-            matchChatChanell: toString(matchExists.recipientUser + matchExists.requesterUser + Date.now()), // TODO implement chat function to generate a new channel, next sprint
+            matchChatChanell: toString(matchExists.recipientUser + matchExists.requesterUser + Date.now()),
             matchStartDate: Date.now()
         }
 
@@ -411,7 +429,8 @@ const getUserCurrentActiveMatches = async (req, res, next) => {
         if (userMatchList) {
             return res.status(200).json({
                 'message': 'Matches get successfully',
-                'data': userActiveMatchesList
+                'data': userActiveMatchesList,
+                'userId': userInfo._id
             });
         } else {
             throw new Error('something went wrong');
@@ -463,6 +482,93 @@ const getUserOldMatches = async (req, res, next) => {
     }
 }
 
+//REMOVING EXISTING MATCHES
+const removeExistingMatch = async(req, res, next) =>
+{
+    try
+    {
+        const matchData = req.body;
+        const match = await Match.findById(matchData.matchId);
+
+        if (match != null)
+        {
+            console.log('Removing match:', match._id);
+
+            const user0 = await User.findById(match.requesterUser);
+            const user1 = await User.findById(match.recipientUser);
+
+            const roomId = user0.email + '|' + user1.email;
+
+            console.log('Removing room:',roomId);
+
+            const roomRemoved = await Room.findOne({roomId:roomId}); //Change to remove
+            if (roomRemoved != null) console.log('Room found!', roomRemoved);
+
+            const user0UpdatedRooms = user0.rooms.filter(element => element.localeCompare(roomId));
+            const user1UpdatedRooms = user1.rooms.filter(element => element.localeCompare(roomId));
+
+            const user0UpdatedMatches = user0.matches.filter(element => element.toString().localeCompare(matchData.matchId));
+            const user1UpdatedMatches = user1.matches.filter(element => element.toString().localeCompare(matchData.matchId));
+
+            User.findByIdAndUpdate(
+                {_id:user0._id},
+                {rooms: user0UpdatedRooms,
+                matches: user0UpdatedMatches},
+                function(err, result) 
+                {
+                    if (err) console.log('Error updating user0:',err);
+                }
+            );
+
+            User.findByIdAndUpdate(
+                user1._id,
+                {rooms: user1UpdatedRooms,
+                matches: user1UpdatedMatches},
+                function(err, result) 
+                {
+                    if (err) console.log('Error updating user1:',err);
+                }
+            );
+
+            Match.findByIdAndRemove(
+                match._id,
+                function(err, result)
+                {
+                    if (err) console.log('Error removing match:',err);
+                }
+            );
+
+            Room.findOneAndRemove(
+                {roomId:roomId},
+                function(err, result)
+                {
+                    if (err) console.log('Error removing room:',err);
+                }
+            );
+
+            res.status(200).json(
+            {
+                'message': 'Match removed!'
+            });
+        }
+        else 
+        {
+            console.log('Match does not exist!');
+            res.status(500).json(
+            {
+                'message': 'Server error while removing match -> match does not exist'
+            });
+        }
+    }
+    catch (error)
+    {
+        console.log(error);
+        res.status(500).json(
+        {
+            'message': 'Server error while removing match!'
+        });
+    }
+}
 
 // TODO -> Maybe create a folder for match -> request, valid match, list of matchs
 
@@ -474,5 +580,6 @@ module.exports = {
     acceptNewMatchRequest: acceptNewMatchRequest,
     denyMatchRequest: denyMatchRequest,
     getUserCurrentActiveMatches: getUserCurrentActiveMatches,
-    getUserOldMatches: getUserOldMatches
+    getUserOldMatches: getUserOldMatches,
+    removeExistingMatch:removeExistingMatch
 }

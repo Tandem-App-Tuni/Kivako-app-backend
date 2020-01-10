@@ -9,8 +9,6 @@ const chatServer = require('../chatServer');
 const schedule = require('node-schedule')
 const dailyFunctions = require('../dailyFunctions')
 var favicon = require('serve-favicon');
-const httpProxy = require('http-proxy');
-const proxy = httpProxy.createServer({});
 
 const loginStrategy = require('./loginStrategy')();
 
@@ -100,6 +98,12 @@ module.exports = function () {
             return user;
         }
 
+        server.get('*', function (req, res, next) 
+        {
+            console.log('Request was made to: ' + req.originalUrl);
+            return next();
+        });
+
         server.get('/login/check', async function (req, res) {
             let userAuthenticaded = req.isAuthenticated();
             console.log('/login/check -> Checking authentication:', userAuthenticaded, req.user);
@@ -136,20 +140,24 @@ module.exports = function () {
 
         server.get('/isAuthenticated', function (req, res) 
         {
-            if (req.isAuthenticated()) {
+            if (req.isAuthenticated()) 
+            {
                 return res.status(200).json({
                     'isAuthenticated': req.isAuthenticated(),
                     'email': req.user.email
                 });
-            } else {
-                res.status(403).json({
-                    'message': 'access denied'
+            } else 
+            {
+                return res.status(200).json({
+                    'isAuthenticated': false,
+                    'email': ''
                 });
             }
         });
 
         server.get('/logout', function (req, res) {
             req.logout();
+            req.session.destroy();
             res.redirect(frontEndURL + '/');
         });
 

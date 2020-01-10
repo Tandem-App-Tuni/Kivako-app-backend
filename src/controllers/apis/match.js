@@ -36,4 +36,8 @@ router.get('/getUserActiveMatches', auth.isAuthenticated, matchService.getUserCu
 //http://localhost:3000/api/v1/usersMatch/getUserOldMatches/:email // GET REQUEST
 router.get('/getUserOldMatches/:email', auth.isAuthenticated, matchService.getUserOldMatches);
 
+//Remove existing match
+//http://localhost:3000/api/v1/usersMatch/removeExistingMatch/ // POST REQUEST
+router.post('/removeExistingMatch', auth.isAuthenticated, matchService.removeExistingMatch);
+
 module.exports = router;
