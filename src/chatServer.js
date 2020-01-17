@@ -83,7 +83,8 @@ var start = function (server, session) {
                                     roomId: roomId,
                                     messages: roomData.messages
                                 },
-                                name: secondUserData.firstName + ' ' + secondUserData.lastName
+                                name: secondUserData.firstName + ' ' + secondUserData.lastName,
+                                email: secondUserId
                             });
                         });
                     });

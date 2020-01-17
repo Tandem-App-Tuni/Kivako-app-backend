@@ -11,22 +11,29 @@ const Room = require('../models/room.js');
 const Constants = require('../configs/constants.js');
 
 const getPossibleMatchUsers = async (req, res, next) => {
-    try {
+    try 
+    {
         console.log('Retrieving possible matches...');
 
         //Get user request informations
         const userInfo = await Helper.getUserLoggedInfoWithEmail(req);
-        //console.log(userInfo)
 
         // Get user informations to be used in search match database query
         const userLearnLanguages = userInfo.languagesToLearn;
         const userID = userInfo._id;
 
         let filterIds = [userID];
-        let usersList = [];
         let languagesList = [];
 
         console.log('User ID:', userID);
+
+        if (userInfo.matches.length > Constants.maxMatchCount)
+        {
+            return res.status(404).json({
+                'code': 'BAD_REQUEST_ERROR',
+                'description': 'You have exceeded the maximal match count limit.'
+            });
+        }
 
         for (i = 0; i < userInfo.matches.length; i++)
         {
@@ -43,12 +50,20 @@ const getPossibleMatchUsers = async (req, res, next) => {
         console.log('User matches number:', userInfo.matches.length, Constants.maxMatchCount);
         console.log('Unwanted ids:', filterIds);
 
-        // Check in each learn language the possible matchs, and save this users in a list
-        for (i = 0; i < userLearnLanguages.length; i++) {
-
+        /**Check in each learn language the possible matchs, and save this users in a list.
+         * Sort the matched users by the amount of correspondence 
+         * between the teach and want to learn languages.
+         * Get all users that match, but not the user that made the request and users that user have a match already
+         * $ne -> mongodb query that mean Not Equals.
+         */
+        let languagesToTeach = userInfo.languagesToTeach;
+        let nLanguages = languagesToTeach.length;
+        let sendArrayFormated = [];
+        let nUsers = 0;
+        for (i = 0; i < userLearnLanguages.length; i++) 
+        {
             languagesList.push(userLearnLanguages[i].language);
-            // Get all users that match, but not the user that made the request and users that user have a match already
-            // $ne -> mongodb query that mean Not Equals.
+
             let users = await User.find({
                 "languagesToTeach.language": userLearnLanguages[i].language,
                 "_id": {
@@ -58,50 +73,35 @@ const getPossibleMatchUsers = async (req, res, next) => {
                 userIsActivie: 0,
                 lastUserAccess: 0,
                 __v: 0,
-                matches: 0
-            }); //Fields that will not be returned in result
+                matches: 0,
+                password: 0,
+                isAdmin: 0
+            }).lean();
 
-            if (users == []) 
+            users.forEach(e => 
             {
-                // Nothing to do
-                usersList.push([]);
-                //console.log("No potential match users in this language");
-            } 
-            else 
-            {
-                // Add possible match users to list
-                usersList.push(users);
-            }
-            users = null;
-        }
-
-        if (userInfo.matches.length >= Constants.maxMatchCount)
-        {
-            return res.status(404).json({
-                'code': 'BAD_REQUEST_ERROR',
-                'description': 'You have exceeded the maximal match count limit.'
+                let n = 0;
+                for (j = 0; j < nLanguages; j++)
+                    for (g = 0; g < e.languagesToLearn.length; g++)
+                        if (e.languagesToLearn[g].language === languagesToTeach[j].language) n++;
+                    
+                e.fitQuality = n/nLanguages;
             });
-        }
 
-        let sendArrayFormated = [];
-        for (i = 0; i < languagesList.length; i++) {
+            nUsers += users.length;
+
             sendArrayFormated.push({
                 'languageName': languagesList[i],
-                'matches': usersList[i]
+                'matches': users.length === 0 ? [] : users
             })
         }
 
-        // Send result
-        if (usersList.length > 0) {
-            return res.status(200).json({
-                // Create data section with language as key value of the users
-                'userPossibleMatches': sendArrayFormated
-            });
-        }
+        for (j = 0; j < sendArrayFormated.length; j++)
+            sendArrayFormated[j].matches.sort((e0, e1) => e0.fitQuality < e1.fitQuality);
 
-        return res.status(404).json({
-            'code': 'BAD_REQUEST_ERROR',
-            'description': 'No users found in match :(. Update your settings to have more chances :)!'
+        return res.status(200).json({
+            // Create data section with language as key value of the users
+            'userPossibleMatches': sendArrayFormated
         });
     } catch (error) 
     {

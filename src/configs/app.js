@@ -67,6 +67,8 @@ module.exports = function () {
         }));
         server.use(cookieParser());
         server.use(express.static(path.join(__dirname, 'public')));
+        //server.use(express.static(constants.uploadsFolder));
+
         server.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 
         // Set up passport env
