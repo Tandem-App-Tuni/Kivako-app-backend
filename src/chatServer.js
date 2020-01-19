@@ -3,19 +3,6 @@ const fs = require('fs');
 const User = require('./models/user');
 const Room = require('./models/room.js');
 
-// Total number of users currently online and chating.
-var totalUserOnline = 0;
-
-var incrementTotalUserCount = function () {
-    totalUserOnline++;
-}
-
-var decreaseTotalUserCount = function () {
-    totalUserOnline--;
-
-    if (totalUserOnline < 0) console.log('Total user count is below 0...report this to the maintainer!');
-}
-
 /**
  * ChatServer creates a socket.io session, managing user ids
  * and total user count. Each user has different rooms they are subscribed to
@@ -90,8 +77,6 @@ var start = function (server, session) {
                     });
                 });
 
-
-                incrementTotalUserCount();
                 console.log('User email: ' + userId);
                 console.log('User connected sucessfully!');
             });
@@ -106,7 +91,6 @@ var start = function (server, session) {
         socket.on('disconnect', function () {
             let userId = passportSession.user.email;
 
-            decreaseTotalUserCount();
             console.log('User information removed...disconnecting user ' + userId);
         });
 
@@ -114,10 +98,8 @@ var start = function (server, session) {
          * Function listens for client room subscription events.
          * The data sent from the client contains information 
          * about the room the client is leaving and the room they are
-         * trying to enter. TODO add check if room is valid for user.
-         * Also sends the room messages object to the client in case unbuffered
-         * messages were sent when he/she was not subscribed to the room.
-         */
+         * trying to enter.
+         * */
         socket.on('subscribe', function (data) {
             console.log('Channel subscription request: ' + data.from, data.to + ' -> ' + passportSession.user.email);
 
@@ -130,6 +112,12 @@ var start = function (server, session) {
                 }).then((roomData) => {
                     if (!roomData) {
                         console.log('Room with ID', data.to, 'not found!');
+                        return;
+                    }
+
+                    if (!roomData.roomId.includes(passportSession.user.email))
+                    {
+                        console.log('User ' + passportSession.user.email + ' requested invalid room! Report this to maintainer!', roomData.roomId);
                         return;
                     }
 
@@ -147,9 +135,9 @@ var start = function (server, session) {
          * to all clients listening on the room.
          */
         socket.on('message', function (data) {
-            var user = data.user;
-            var message = data.message;
-            var roomId = data.roomId;
+            let user = data.user;
+            let message = data.message;
+            let roomId = data.roomId;
 
             console.log('Message recieved from user', user, 'from room', roomId, '->', message);
 
@@ -161,6 +149,15 @@ var start = function (server, session) {
                     messages: message
                 }
             }).exec();
+        });
+
+
+        socket.on('ack', function(data) 
+        {
+            let ackCount = data.mCount;
+            let userEmail = passportSession.email;
+
+            console.log();
         });
     });
 
