@@ -5,6 +5,7 @@ const express = require('express');
 const User = require('../models/user');
 var passwordHash = require('password-hash');
 const Helper = require('./helper')
+const EmailDomains = require('../emailDomains');
 
 
 const checkIfUserAlreadyRegistered = async (req, res, next) => {
@@ -98,7 +99,47 @@ const createUser = async (req, res, next) => {
         {
             return res.status(422).json({
                 'code': 'REQUIRED_FIELD_MISSING',
-                'description': 'email is required',
+                'description': 'Email is required!',
+                'field': 'email'
+            });
+        }
+
+        /**
+         * Check if the email provided is from the correct domain.
+         * First check if the email is a valid email address.
+         * The following regex checks for approximate string validity.
+         * The regex is available on https://emailregex.com/.
+         */
+        if (!/(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
+        .test(email))
+        {
+            console.log('Invalid email address!');
+            return res.status(422).json({
+                'code': 'INVALID_EMAIL_ADDRESS',
+                'description': 'Email address is not valid!',
+                'field': 'email'
+            });
+        }
+
+        let domainFlag = true;
+        for (i = 0; i < EmailDomains.domains.domains.length; i++)
+        {
+            const domain = EmailDomains.domains.domains[i];
+
+            if (!email.endsWith(domain))
+            {
+                domainFlag = false;
+                break;
+            }
+        }
+
+        if (!domainFlag)
+        {
+            console.log('Invalid domain!');
+
+            return res.status(422).json({
+                'code': 'INVALID_EMAIL_DOMAIN',
+                'description': 'Email domain is not allowed!',
                 'field': 'email'
             });
         }
@@ -108,7 +149,7 @@ const createUser = async (req, res, next) => {
             return res.status(422).json(
             {
                 'code': 'PASSWORD_TOO_SHORT',
-                'description': 'Password has to be longer than 5 characters',
+                'description': 'Password has to be longer than 5 characters.',
                 'field': 'password'
             });
         }
@@ -121,7 +162,7 @@ const createUser = async (req, res, next) => {
         if (isEmailExists) {
             return res.status(409).json({
                 'code': 'ENTITY_ALREAY_EXISTS',
-                'description': 'email already exists',
+                'description': 'Email already exists!',
                 'field': 'email'
             });
         }
@@ -153,7 +194,10 @@ const createUser = async (req, res, next) => {
         } else {
             throw new Error('something went worng');
         }
-    } catch (error) {
+    } catch (error) 
+    {
+        console.log(error);
+
         return res.status(500).json({
             'code': 'SERVER_ERROR',
             'description': 'something went wrong, Please try again'

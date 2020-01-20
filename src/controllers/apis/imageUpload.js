@@ -10,6 +10,14 @@ let router = express.Router();
 
 const storageFolder = constants.uploadsFolder;
 
+/**
+ * The functions here take care of the
+ * uploading, storing and serving of user avatars.
+ * Avatars are resized uppon storing to a default size of 100 x 100 pixels, retaining aspect ratio.
+ * The images are accessible via a get request to the server with a postfixed name of 
+ * the user whos avatar is requested.
+ */
+
 let storage = multer.diskStorage(
 {
     destination: function(req, file, cb) 

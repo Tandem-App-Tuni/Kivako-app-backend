@@ -50,7 +50,8 @@ const getPossibleMatchUsers = async (req, res, next) => {
         console.log('User matches number:', userInfo.matches.length, Constants.maxMatchCount);
         console.log('Unwanted ids:', filterIds);
 
-        /**Check in each learn language the possible matchs, and save this users in a list.
+        /**
+         * Check in each learn language the possible matchs, and save this users in a list.
          * Sort the matched users by the amount of correspondence 
          * between the teach and want to learn languages.
          * Get all users that match, but not the user that made the request and users that user have a match already

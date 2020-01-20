@@ -1,6 +1,8 @@
 //import schedule from 'node-schedule'
 const User = require('./models/user');
 const Email = require('./email')
+const fs = require('fs');
+const path = require('path');
 
 
 // Make a set of functions to run and export the module to the server
@@ -57,14 +59,23 @@ const oneYearInactiveUsers = async (req, res, next) => {
             }
         })
 
-        for (i = 0; i < (await inactiveUsers).length; i++) {
+        for (i = 0; i < (await inactiveUsers).length; i++) 
+        {
             let user = inactiveUsers[i];
+
+            fs.unlink(path.join('./configs/uploads', user.email), (err) => 
+            {
+                if (err) throw err;
+            });
+
+            //Add removal of matches, chat rooms of the user...
             User.findByIdAndRemove(user._id);
             Email.sendEmailInactiveAccountOneYear(user);
         }
 
-    } catch (error) {
-        // Nothing to do
+    } catch (error) 
+    {
+        console.log(error);
     }
 }
 
