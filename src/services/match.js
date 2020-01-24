@@ -276,7 +276,8 @@ const acceptNewMatchRequest = async (req, res, next) => {
         const matchExists = await Match.findById(matchId);
 
         if (!matchExists) {
-            return res.status(404).json({
+            return res.status(404).json(
+            {
                 'code': 'BAD_REQUEST_ERROR',
                 'description': 'No match found with this ID found in the system'
             });

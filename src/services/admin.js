@@ -7,7 +7,8 @@ const Match = require('../models/match');
 var passwordHash = require('password-hash');
 
 
-const getLanguageStatitics = async (req, res, next) => {
+const getLanguageStatitics = async (req, res, next) => 
+{
     try {
         let languageStatitics = []
 
@@ -41,7 +42,10 @@ const getLanguageStatitics = async (req, res, next) => {
             'data': languageStatitics
         });
 
-    } catch (error) {
+    } catch (error) 
+    {
+        console.log(error);
+
         return res.status(500).json({
             'code': 'SERVER_ERROR',
             'description': 'something went wrong, Please try again'

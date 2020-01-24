@@ -5,8 +5,8 @@
 const path = require('path');
 
 // URL's
-const frontEndURL = 'http://localhost:3001'//'https://www.unitandem.fi'; //'http://localhost:3001'
-const adminFrontEndURL = 'http://localhost:3002';
+const frontEndURL = 'https://www.unitandem.fi'; //'http://localhost:3001'
+const adminFrontEndURL = 'http://localhost:3002'; //https://www.unitandem.fi:3002
 const smlAuthenticationProvider = 'http://localhost:8080';
 
 // LOGIN STRATEGY

@@ -55,22 +55,19 @@ router.get('/getAvatar*', auth.isAuthenticated, function(req, res, next)
     {
         let checkRequest = req.path.split('/');
         let imageFile;  
-        if (checkRequest[checkRequest.length - 1] !== 'getAvatar') imageFile = path.join(storageFolder , checkRequest[checkRequest.length - 1]);
+
+        for (i = checkRequest.length - 1; i >= 0; i--)
+            if (checkRequest[i] !== '')
+            {
+                checkRequest = checkRequest[i];
+                break;
+            }
+
+        if (checkRequest !== 'getAvatar') imageFile = path.join(storageFolder , checkRequest);
         else imageFile = path.join(storageFolder ,req.user.email);
 
-        console.log('Request for:', imageFile);
-
-        if (fs.existsSync(imageFile)) 
-        {
-            res.sendFile(imageFile);
-            console.log('Sending avatar...');
-        }
-        else 
-        {
-            res.status(200).json({message:'No avatar found!'});
-            console.log('Can not find avatar...');
-        }
-        
+        if (fs.existsSync(imageFile)) res.sendFile(imageFile);
+        else res.status(200).json({message:'No avatar found!'});
     }
     catch (error)
     {

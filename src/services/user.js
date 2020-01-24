@@ -121,14 +121,14 @@ const createUser = async (req, res, next) => {
             });
         }
 
-        let domainFlag = true;
+        let domainFlag = false;
         for (i = 0; i < EmailDomains.domains.domains.length; i++)
         {
             const domain = EmailDomains.domains.domains[i];
-
-            if (!email.endsWith(domain))
+            
+            if (email.endsWith(domain))
             {
-                domainFlag = false;
+                domainFlag = true;
                 break;
             }
         }

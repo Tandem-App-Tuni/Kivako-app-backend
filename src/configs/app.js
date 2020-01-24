@@ -106,6 +106,12 @@ module.exports = function () {
             return next();
         });
 
+        server.post('*', function (req, res, next)
+        {
+            console.log('Post request was made to: ' + req.originalUrl);
+            return next();
+        });
+
         server.get('/login/check', async function (req, res) {
             let userAuthenticaded = req.isAuthenticated();
             console.log('/login/check -> Checking authentication:', userAuthenticaded, req.user);
