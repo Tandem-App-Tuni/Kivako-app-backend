@@ -14,7 +14,6 @@ const loginStrategy = require('./loginStrategy')();
 
 const constants = require('./constants')
 
-
 // Front end Server URL's
 const frontEndURL = constants.frontEndURL; //'https://www.unitandem.fi'; //localhost:3001
 const adminFrontEndURL = constants.adminFrontEndURL; //'http://localhost:3002';
@@ -28,8 +27,9 @@ module.exports = function () {
     var allowedOrigins = [frontEndURL, adminFrontEndURL, smlAuthenticationProvider];
     server.use(cors({
         credentials: true,
-        origin: function (origin, callback) {
-            console.log(origin)
+        origin: function (origin, callback) 
+        {
+            console.log('Request origin:', origin);
             // allow requests with no origin 
             // (like mobile apps or curl requests)
             if (!origin) return callback(null, true);
