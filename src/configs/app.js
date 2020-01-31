@@ -15,9 +15,9 @@ const loginStrategy = require('./loginStrategy')();
 const constants = require('./constants')
 
 // Front end Server URL's
-const frontEndURL = constants.frontEndURL; //'https://www.unitandem.fi'; //localhost:3001
-const adminFrontEndURL = constants.adminFrontEndURL; //'http://localhost:3002';
-const smlAuthenticationProvider = constants.smlAuthenticationProvider; //'http://localhost:8080';
+const frontEndURL = constants.frontEndURL; 
+const adminFrontEndURL = constants.adminFrontEndURL;
+const smlAuthenticationProvider = constants.smlAuthenticationProvider;
 
 module.exports = function () {
     let server = express(),
