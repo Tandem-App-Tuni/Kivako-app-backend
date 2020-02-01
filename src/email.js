@@ -77,10 +77,7 @@ const sendEmailInactiveAccountOneYear = async (user, res, next) => {
      });
 }
 
-
-
-module.exports =
-{
+module.exports ={
     sendEmailNewMatchRequestReceived:sendEmailNewMatchRequestReceived,
     sendEmailAcceptedMatchRequest:sendEmailAcceptedMatchRequest,
     sendEmailInactiveAccountOneMonth:sendEmailInactiveAccountOneMonth,

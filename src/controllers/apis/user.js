@@ -26,9 +26,8 @@ router.post('/add', userService.createUser);
 router.post('/update', auth.isAuthenticated, userService.updateUser);
 
 // Delete user
-//http://localhost:3000/api/v1/users/:id //DELETE REQUEST
-// TODO -> Just for development, in the end delete this endpoint.
-router.delete('/:id', auth.isAuthenticated, userService.deleteUser);
+//http://localhost:3000/api/v1/users/delete
+router.delete('/delete', auth.isAuthenticated, userService.deleteUser);
 
 
 

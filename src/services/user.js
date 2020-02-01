@@ -1,18 +1,20 @@
 /********
  * user.js file (services/users)
  ********/
-const express = require('express');
 const User = require('../models/user');
+const Match = require('../models/match');
+const Room = require('../models/room');
 var passwordHash = require('password-hash');
 const Helper = require('./helper')
 const EmailDomains = require('../emailDomains');
-
+const fs = require('fs');
+const path = require('path');
+const constants = require('../configs/constants');
+const emailServer = require('../emailServer');
 
 const checkIfUserAlreadyRegistered = async (req, res, next) => {
 
     try {
-
-        //console.log("[DEBUG]Checking if user " + req.user.email + " is already registered!");
         if (req.user.email) {
             const email = req.user.email;
 
@@ -205,8 +207,11 @@ const createUser = async (req, res, next) => {
     }
 }
 
-const updateUser = async (req, res, next) => {
+const updateUser = async (req, res, next) => 
+{
     try {
+        emailServer.sendTestEmail(req.user.email);
+
         const userEmail = req.user.email;
 
         let user = await User.findOne({
@@ -267,22 +272,88 @@ const updateUser = async (req, res, next) => {
     }
 }
 
-const deleteUser = async (req, res, next) => {
-    try {
-        let user = await User.findByIdAndRemove(req.params.id);
-        if (user) {
-            return res.status(204).json({
-                'message': `user with id ${req.params.id} deleted successfully`
+/**
+ * Find all user matches and rooms.
+ * Delete the matches and rooms and also delete the
+ * matches from the second user in the partnership as well 
+ * as the rooms. The avatar is also deleted.
+ */
+const deleteUser = async (req, res, next) => 
+{
+    try 
+    {
+        const email = req.user.email;
+        let user = await User.findOne({'email': email});
+        let matches = await Match.find({'_id': {$in: user.matches}});
+        let rooms = await Room.find({'roomId': {$in: user.rooms}});
+
+        for (i = 0; i < matches.length; i++)
+        {
+            let match = matches[i];
+
+            let secondUser;
+
+            if (match.requesterUser.equals(user._id)) secondUser = match.recipientUser;
+            else if (match.recipientUser.equals(user._id)) secondUser = match.requesterUser;
+            
+            secondUser = await User.findById(secondUser).exec();
+            
+            let postMatches = secondUser.matches.filter(id => !id.equals(match._id));
+            let postRooms = secondUser.rooms.filter(id => !id.includes(email));
+
+            console.log(secondUser.matches, secondUser.rooms);
+            console.log(postMatches, postRooms);
+
+            await User.findByIdAndUpdate(secondUser._id, {rooms: postRooms, matches: postMatches}, (err) => 
+            {
+                if (err) console.log('Error updating user', secondUser.email, 'when removing user', email, err);
+            });
+
+            await Match.findByIdAndRemove(match._id, (err) => 
+            {
+                if (err) console.log('Error removing match between users', email, secondUser.email, err);
+            });
+
+            await Room.findByIdAndRemove(rooms[i]._id, (err) => 
+            {
+                if (err) console.log('Error removing room', rooms[i].roomId, err);
             });
         }
 
-        return res.status(404).json({
-            'code': 'BAD_REQUEST_ERROR',
-            'description': 'No users found in the system'
+        let avatar = path.join(constants.uploadsFolder, email);
+        if (fs.existsSync(avatar)) fs.unlink(avatar, (err) => 
+        {
+            if (err) console.log('Error removing the avatar', avatar, err);
         });
 
-    } catch (error) {
+        await User.findByIdAndRemove(user._id, (err) => 
+        {
+            if (err)
+            {
+                console.log('Error removing user', user.email, err);
 
+                return res.status(500).json(
+                {
+                    code: 'SERVER_ERROR',
+                    description: 'Something went wrong. Please try again later.'
+                });
+            }
+            else
+            {
+                req.logout();
+                req.session.destroy();
+
+                return res.status(200).json(
+                {
+                    code: 'REMOVAL_SUCCESSFUL',
+                    description: 'User removed.'
+                });
+            }
+        });
+    } 
+    catch (error) 
+    {
+        console.log(error);
         return res.status(500).json({
             'code': 'SERVER_ERROR',
             'description': 'something went wrong, Please try again'

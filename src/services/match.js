@@ -503,7 +503,7 @@ const removeExistingMatch = async(req, res, next) =>
 
             console.log('Removing room:',roomId);
 
-            const roomRemoved = await Room.findOne({roomId:roomId}); //Change to remove
+            const roomRemoved = await Room.findOne({roomId:roomId});
             if (roomRemoved != null) console.log('Room found!', roomRemoved);
 
             const user0UpdatedRooms = user0.rooms.filter(element => element.localeCompare(roomId));
