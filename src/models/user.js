@@ -5,48 +5,61 @@ var languageSchema = new mongoose.Schema({ language: String, level: String, cred
 
 var userSchema = new mongoose.Schema({
   firstName: {
-      type: String,
-      required: true
+    type: String,
+    required: true
   },
   lastName: {
-      type: String,
-      required: true
+    type: String,
+    required: true
+  },
+  isActivated:
+  {
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  activationKey:
+  {
+    type: String,
+    required: true
+  },
+  activationStamp:
+  {
+    type: Date,
+    required: true
   },
   email: {
-      type: String,
-      required: true
+    type: String,
+    required: true
   },
   password:
   {
-      type: String,
-      required: true
+    type: String,
+    required: true
   },
   cities: {
-      type: [String]
+    type: [String]
   },
   descriptionText: {
-      type: String,
-      required: true
+    type: String,
+    required: true
   },
   languagesToTeach: {
-      type: [languageSchema], // Format: {"language":"PT", "level": "B2", "credits": 3}
-      required: true
+    type: [languageSchema], // Format: {"language":"PT", "level": "B2", "credits": 3}
+    required: true
   },
   languagesToLearn: {
-      type: [languageSchema], // Format: {"language":"PT", "level": "B2", "credits": 3}
-      required: true
+    type: [languageSchema], // Format: {"language":"PT", "level": "B2", "credits": 3}
+    required: true
   },
   userIsActivie:{
-      type: Boolean,
-      required: true,
-      default:true
+    type: Boolean,
+    required: true,
+    default:true
   },
   lastUserAccess:{ 
-      type: Date, 
-      default: Date.now 
-  },
-  profileImg:{ 
-      type:String
+    type: Date, 
+    default: Date.now 
   },
   rooms:
   {
@@ -54,12 +67,9 @@ var userSchema = new mongoose.Schema({
   },
   matches:[{type: Schema.Types.ObjectId, ref: 'Match'}], // List of the matches that user has, counting current and historic ones.
   isAdmin:{
-      type: Boolean,
-      required:true,
-      default:false
-  },
-  university:{
-      type:String
+    type: Boolean,
+    required:true,
+    default:false
   }
 });
 

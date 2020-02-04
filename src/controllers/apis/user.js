@@ -16,6 +16,12 @@ router.get('/userInfo', auth.isAuthenticated, userService.getUserInformation);
 //http://localhost:3000/api/v1/users/drawer
 router.get('/drawer', auth.isAuthenticated, userService.loadUserInfoMenuDrawer);
 
+//http://localhost:3000/api/v1/users/activate/email
+router.get('/activate/*', userService.activateUser);
+
+//http://localhost:3000/api/v1/users/reactivate/email
+router.get('/reactivate/*', userService.reactivateUser);
+
 // Register a new user
 //http://localhost:3000/api/v1/users/add //POST REQUEST
 router.post('/add', userService.createUser);

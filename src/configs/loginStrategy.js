@@ -4,24 +4,26 @@ var SamlStrategy = require('passport-saml').Strategy;
 var LocalStrategy = require('passport-local').Strategy;
 var saml = require('passport-saml');
 var passwordHash = require('password-hash');
-//const Credentials = require('../models/credentials');
 const User = require('../models/user');
 
 
 module.exports = function () {
-    passport.serializeUser(function (user, done) {
+    passport.serializeUser(function (user, done) 
+    {
         console.log('User serialization...', user);
         done(null, {
             email: user.email
         });
     });
 
-    passport.deserializeUser(function (user, done) {
+    passport.deserializeUser(function (user, done) 
+    {
         console.log('User deserialization...', user);
         done(null, user);
     });
 
-    createSAMLLogin = (server) => {
+    createSAMLLogin = (server) => 
+    {
         var samlStrategy = new saml.Strategy({
                 callbackUrl: 'http://localhost/login/callback',
                 entryPoint: 'http://localhost:8080/simplesaml/saml2/idp/SSOService.php',
@@ -40,39 +42,42 @@ module.exports = function () {
         server.use(passport.initialize());
         server.use(passport.session());
 
-        server.get('/login', function (req, res, next) {
-                console.log('SAML login: request for authentication!');
-                next();
-            },
+        server.get('/login', function (req, res, next) 
+        {
+            console.log('SAML login: request for authentication!');
+            next();
+        },
             passport.authenticate('samlStrategy')
         );
 
-        server.post('/login/callback', function (req, res, next) {
-                console.log('SAML login: callback response from ID!');
-                next();
-            },
+        server.post('/login/callback', function (req, res, next) 
+        {
+            console.log('SAML login: callback response from ID!');
+            next();
+        },
             passport.authenticate('samlStrategy'),
-            function (req, res) {
+            function (req, res) 
+            {
                 console.log('SAML login: user logged in successfully!', req.session);
                 res.redirect('/login/check');
             }
         );
     };
 
-
-    createLocalLogin = (server) => {
+    createLocalLogin = (server) => 
+    {
         var localStrategy = new LocalStrategy(
-            function (userEmail, password, done) {
-                //console.log('Local login: authenticating with:', userEmail, password);
-
+            function (userEmail, password, done) 
+            {
                 User.findOne({
                     email: userEmail
-                }, function (err, user) {
+                }, function (err, user) 
+                {
                     if (err) return done(null, err);
 
                     if (!user) return done(null, false);
 
-                    if (passwordHash.verify(password, user.password)) return done(null, user);
+                    if (passwordHash.verify(password, user.password) && user.isActivated) return done(null, user);
                     else return done(null, false);
                 });
             }
@@ -85,13 +90,15 @@ module.exports = function () {
         server.post('/login', passport.authenticate('local', {
                 failureRedirect: '/login/check'
             }),
-            function (req, res) {
+            function (req, res) 
+            {
                 console.log('Local login: Successfull login!', req.isAuthenticated());
                 res.send('/login/check');
             }
         );
 
-        server.post('/register-user', function (req, res, next) {
+        server.post('/register-user', function (req, res, next) 
+        {
             console.log('Register request:', req.body);
 
             let email = req.body.email;

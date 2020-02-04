@@ -171,12 +171,15 @@ const createUser = async (req, res, next) => {
 
 
         let hashedPassword = passwordHash.generate(password);
-        let userUniversity = await Helper.getUserUniversityWithEmail(email)
+
+        let activationKey = Helper.generateRandomActivationKey();
 
         const temp = {
             firstName: firstName,
             lastName: lastName,
             email: email,
+            activationKey: activationKey,
+            activationStamp: new Date(),
             cities: cities,
             descriptionText: descriptionText,
             languagesToTeach: languagesToTeach,
@@ -184,10 +187,11 @@ const createUser = async (req, res, next) => {
             userIsActivie: userIsActivie,
             isAdmin: false,
             password: hashedPassword,
-            university: userUniversity
         };
 
         let newUser = await User.create(temp);
+
+        emailServer.sendActivationEmail(email, constants.backEndUrl + '/api/v1/users/activate/' + activationKey);
 
         if (newUser) {
             return res.status(201).json({
@@ -207,11 +211,89 @@ const createUser = async (req, res, next) => {
     }
 }
 
+const activateUser = async(req, res, next) =>
+{
+    try
+    {
+        let activationKey = req.path.split('/');
+        activationKey = activationKey[activationKey.length - 1];
+        
+        console.log('Activation request for key:', activationKey);
+
+        let user = await User.findOne({activationKey: activationKey});
+
+        if (user)
+        {
+            console.log('User is activated:', user.isActivated);
+
+            if (user.isActivated) 
+            {
+                res.redirect(constants.frontEndURL + '/local-login');
+                return;
+            }
+
+            User.findByIdAndUpdate(user._id, {isActivated: true}, (err) => 
+            {
+                if (err) console.log('Error activating user', user.email);
+            });
+            res.redirect(constants.frontEndURL + '/local-login');
+        }
+        else
+        {
+            console.log('User not found...invalid activaiton key...report this to the maintainer -> key:', activationKey);
+            res.redirect(constants.frontEndURL + '/local-login');
+        }
+    }
+    catch(error)
+    {
+        console.log(error);
+
+        res.status(500).json(
+        {
+            message: 'An error occured. Pleasy try again later!'
+        });
+    }
+}
+
+const reactivateUser = async(req, res, next) =>
+{
+    try
+    {
+        let email = req.path.split('/');
+        email = email[email.length - 1];
+
+        User.findOne({email: email})
+        .then(user => 
+        {
+            if (!user || (user.isActivated || ((new Date() - user.activationStamp) < 1))) res.status(404).json({message: 'Error while activating.'});
+            else 
+            {
+                let activationKey = Helper.generateRandomActivationKey();
+                emailServer.sendActivationEmail(email, constants.backEndUrl + '/api/v1/users/activate/' + activationKey);
+
+                User.findByIdAndUpdate(user._id, {activationKey: activationKey, activationStamp: new Date}, error => 
+                {
+                    if (error)
+                    {
+                        console.log('Error updating user information while reactivating', error);
+                        res.status(404).json({message: 'Error while activating.'});
+                    }
+                    else res.status(200).json({message: 'Activation link resent.'});
+                });
+            }
+        });
+    }
+    catch(error)
+    {
+        console.log('Error occured when trying to resend an activaion link:', error);
+        res.status(404).json({message: 'Error while activating.'});
+    }
+}
+
 const updateUser = async (req, res, next) => 
 {
-    try {
-        emailServer.sendTestEmail(req.user.email);
-
+    try 
+    {
         const userEmail = req.user.email;
 
         let user = await User.findOne({
@@ -416,5 +498,7 @@ module.exports = {
     updateUser: updateUser,
     deleteUser: deleteUser,
     checkIfUserAlreadyRegistered: checkIfUserAlreadyRegistered,
-    loadUserInfoMenuDrawer: loadUserInfoMenuDrawer
+    loadUserInfoMenuDrawer: loadUserInfoMenuDrawer,
+    activateUser:activateUser,
+    reactivateUser:reactivateUser
 }

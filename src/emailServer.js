@@ -1,33 +1,40 @@
 const serverEmailAddress = 'unitandemfinland@gmail.com';
 
-const nodemailer = require('nodemailer');
-const transporter = nodemailer.createTransport({
-service: 'gmail',
-auth: {
-        user: serverEmailAddress,
-        pass: 'unitandemtest'
-    }
-});
+const mailServer = require('@sendgrid/mail');
+mailServer.setApiKey('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');
 
 const sendTestEmail = async (email) => 
 {
-    const mailOptions = 
+    const message =
     {
-        from: serverEmailAddress,
-        to: email,
-        subject: 'Unitandem, test email!',
-        html: 'Hi, this is a test!'
-      };
+      to: email,
+      from: serverEmailAddress,
+      subject: 'Test email',
+      text: 'This is a test for sending emails!'
+    };
 
-    transporter.sendMail(mailOptions, function (err, info) 
-    {
-        if(err)
-          console.log(err)
-        else
-          console.log(info);
-     });
+    mailServer.send(message);
 }
 
+const sendActivationEmail = async(email, activationKeyUrl) =>
+{
+  console.log('Sending email to', email, activationKeyUrl);
+
+  const message =
+  {
+    to: email,
+    from: serverEmailAddress,
+    subject: 'Unitandem account activation',
+    html: 'Welcome to Unitandem. Before you can start, please activate your account by <a href='+ activationKeyUrl +'>clicking on this link.</a>',
+  };
+
+  mailServer.send(message, (error, result) => 
+  {
+    if (error) console.log('Error sending email to', email,':',error);
+  });
+};
+
 module.exports ={
-    sendTestEmail:sendTestEmail
+    sendTestEmail:sendTestEmail,
+    sendActivationEmail:sendActivationEmail
 };
