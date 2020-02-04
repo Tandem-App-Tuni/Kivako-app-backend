@@ -4,7 +4,7 @@
 // To access the hostname and port settings, access the file config
 const path = require('path');
 
-const LOCAL_TEST_ENVIRONMENT = true;
+const LOCAL_TEST_ENVIRONMENT = false;
 const LOCAL_LOGIN_STRATEGY = true;
 const MAX_MATCH_COUNT = 10;
 const AVATAR_UPLOAD_FOLDER = path.join(__dirname, 'uploads');

@@ -1,7 +1,7 @@
 const serverEmailAddress = 'unitandemfinland@gmail.com';
 
 const mailServer = require('@sendgrid/mail');
-mailServer.setApiKey('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');
+mailServer.setApiKey(process.env.SENDGRID_API_KEY);
 
 const sendTestEmail = async (email) => 
 {
