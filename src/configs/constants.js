@@ -9,7 +9,7 @@ const LOCAL_LOGIN_STRATEGY = true;
 const MAX_MATCH_COUNT = 10;
 const AVATAR_UPLOAD_FOLDER = path.join(__dirname, 'uploads');
 
-const backEndUrl = 'http://localhost:3000';
+const backEndUrl = LOCAL_TEST_ENVIRONMENT ?'http://localhost:3000' : 'https://www.unitandem.fi';
 const frontEndURL = LOCAL_TEST_ENVIRONMENT ? 'http://localhost:3001' : 'https://www.unitandem.fi';
 const adminFrontEndURL = LOCAL_TEST_ENVIRONMENT ? 'https://www.unitandem.fi:3002' : 'http://localhost:3002';
 const smlAuthenticationProvider = 'http://localhost:8080';

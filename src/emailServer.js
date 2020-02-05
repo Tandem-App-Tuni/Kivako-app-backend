@@ -1,40 +1,45 @@
-const serverEmailAddress = 'unitandemfinland@gmail.com';
+const serverEmailAddress =  'info@unitandem.fi';
+const nodemailer = require('nodemailer');
 
-const mailServer = require('@sendgrid/mail');
-mailServer.setApiKey(process.env.SENDGRID_API_KEY);
+const transporter = nodemailer.createTransport({
+  host: 'ssl0.ovh.net',
+  port: 465,
+  secure: true,
+  auth: 
+  {
+    user: serverEmailAddress,
+    pass: process.env.PASS
+  },
+  tls:
+  {
+    rejectUnauthorized: false
+  }
+});
 
-const sendTestEmail = async (email) => 
+transporter.verify((error, success) => 
 {
-    const message =
-    {
-      to: email,
-      from: serverEmailAddress,
-      subject: 'Test email',
-      text: 'This is a test for sending emails!'
-    };
-
-    mailServer.send(message);
-}
+  if (error) console.log(error);
+  else console.log('Email server is online!');
+});
 
 const sendActivationEmail = async(email, activationKeyUrl) =>
 {
-  console.log('Sending email to', email, activationKeyUrl);
+  console.log('Sending email to (' + email + ')', activationKeyUrl);
 
-  const message =
+  transporter.sendMail(
   {
-    to: email,
     from: serverEmailAddress,
+    to: email,
     subject: 'Unitandem account activation',
-    html: 'Welcome to Unitandem. Before you can start, please activate your account by <a href='+ activationKeyUrl +'>clicking on this link.</a>',
-  };
-
-  mailServer.send(message, (error, result) => 
+    html: 'Welcome to Unitandem. Before you can start, please activate your account by <a href='+ activationKeyUrl +'>clicking on this link.</a>'
+  })
+  .then((info, error) => 
   {
-    if (error) console.log('Error sending email to', email,':',error);
+    if (error) console.log(error);
+    console.log('Email server information:', info);
   });
 };
 
 module.exports ={
-    sendTestEmail:sendTestEmail,
     sendActivationEmail:sendActivationEmail
 };
