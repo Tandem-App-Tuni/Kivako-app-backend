@@ -22,16 +22,18 @@ transporter.verify((error, success) =>
   else console.log('Email server is online!');
 });
 
-const sendActivationEmail = async(email, activationKeyUrl) =>
+const sendActivationEmail = async(user, activationKeyUrl) =>
 {
-  console.log('Sending email to (' + email + ')', activationKeyUrl);
+  console.log('Sending email to (' + user.email + ')', activationKeyUrl);
 
   transporter.sendMail(
   {
     from: serverEmailAddress,
-    to: email,
+    to: user.email,
     subject: 'Unitandem account activation',
-    html: 'Welcome to Unitandem. Before you can start, please activate your account by <a href='+ activationKeyUrl +'>clicking on this link.</a>'
+    html: 'Welcome to Unitandem, ' + user.firstName + ' ' + user.lastName + '.Be sure that this is the latest ' +
+    'activation email you received. You can activate ' +
+    'your account by <a href='+ activationKeyUrl +'>clicking on this link.</a>'
   })
   .then((info, error) => 
   {

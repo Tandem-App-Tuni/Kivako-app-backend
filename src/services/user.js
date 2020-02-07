@@ -81,7 +81,8 @@ const getUserInformation = async (req, res, next) => {
     }
 }
 
-const createUser = async (req, res, next) => {
+const createUser = async (req, res, next) => 
+{
     try {
         const {
             firstName,
@@ -191,7 +192,12 @@ const createUser = async (req, res, next) => {
 
         let newUser = await User.create(temp);
 
-        emailServer.sendActivationEmail(email, constants.backEndUrl + '/api/v1/users/activate/' + activationKey);
+        emailServer.sendActivationEmail(
+        {
+            email: email, 
+            firstName: temp.firstName,
+            lastName: temp.lastName
+        }, constants.backEndUrl + '/api/v1/users/activate/' + activationKey);
 
         if (newUser) {
             return res.status(201).json({
@@ -269,7 +275,12 @@ const reactivateUser = async(req, res, next) =>
             else 
             {
                 let activationKey = Helper.generateRandomActivationKey();
-                emailServer.sendActivationEmail(email, constants.backEndUrl + '/api/v1/users/activate/' + activationKey);
+                emailServer.sendActivationEmail(
+                {
+                    email: user.email, 
+                    firstName: user.firstName,
+                    lastName: user.lastName
+                }, constants.backEndUrl + '/api/v1/users/activate/' + activationKey);
 
                 User.findByIdAndUpdate(user._id, {activationKey: activationKey, activationStamp: new Date}, error => 
                 {
