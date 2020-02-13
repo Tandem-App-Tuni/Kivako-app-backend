@@ -81,6 +81,26 @@ const getUserInformation = async (req, res, next) => {
     }
 }
 
+const isAdmin = async(req, res, next) =>
+{
+    try
+    {
+        if (!req.user) res.status(200).json({isAdmin:false});
+        else
+        {
+            const user = await User.findOne({email:req.user.email});
+
+            if (user) res.status(200).json({isAdmin:user.isAdmin});
+            else res.status(200).json({isAdmin:false});
+        }
+    }
+    catch(error)
+    {
+        console.log(error);
+        res.status(200).json({isAdmin:false});
+    }
+}
+
 const createUser = async (req, res, next) => 
 {
     try {
@@ -373,9 +393,89 @@ const updateUser = async (req, res, next) =>
  */
 const deleteUser = async (req, res, next) => 
 {
+    try
+    {
+        helperDeleteUser(req.user.email)
+        .then(result => 
+        {
+            console.log('Deletion result:', result);
+
+            if (result === 0)
+            {
+                req.logout();
+                req.session.destroy();
+
+                return res.status(200).json(
+                {
+                    code: 'REMOVAL_SUCCESSFUL',
+                    description: 'User removed.'
+                });
+            }
+            else
+            {
+                return res.status(500).json({
+                    'code': 'SERVER_ERROR',
+                    'description': 'something went wrong, Please try again'
+                });
+            }
+        });
+    }
+    catch(error)
+    {
+        return res.status(500).json({
+            'code': 'SERVER_ERROR',
+            'description': 'something went wrong, Please try again'
+        });
+    }
+}
+
+const adminDeleteUser = async (req, res, next) =>
+{
+    try
+    {
+        let adminUser = req.user.email;
+        adminUser = await User.findOne({email:adminUser});
+
+        if (adminUser !== undefined && adminUser.isAdmin)
+        {
+            let userEmail = req.path.split('/');
+            userEmail = userEmail[userEmail.length - 1];
+
+            console.log('Removing user:', userEmail);
+
+            helperDeleteUser(userEmail)
+            .then(result => 
+            {
+                if (result === 0) return res.status(200).json({
+                                    code: 'REMOVAL_SUCCESSFUL',
+                                    description: 'User removed.'
+                                });
+                else return res.status(500).json({
+                    'code': 'SERVER_ERROR',
+                    'description': 'something went wrong, Please try again'
+                });
+            });
+        }
+        else return res.status(500).json({
+                'code': 'SERVER_ERROR',
+                'description': 'something went wrong, Please try again'
+            });
+    }
+    catch(error)
+    {
+        return res.status(500).json({
+            'code': 'SERVER_ERROR',
+            'description': 'something went wrong, Please try again'
+        });
+    }
+}
+
+const helperDeleteUser = async (email) =>
+{
     try 
     {
-        const email = req.user.email;
+        console.log('Removing profile', email);
+
         let user = await User.findOne({'email': email});
         let matches = await Match.find({'_id': {$in: user.matches}});
         let rooms = await Room.find({'roomId': {$in: user.rooms}});
@@ -419,38 +519,24 @@ const deleteUser = async (req, res, next) =>
             if (err) console.log('Error removing the avatar', avatar, err);
         });
 
+        let flag = 0;
+
         await User.findByIdAndRemove(user._id, (err) => 
         {
             if (err)
             {
                 console.log('Error removing user', user.email, err);
 
-                return res.status(500).json(
-                {
-                    code: 'SERVER_ERROR',
-                    description: 'Something went wrong. Please try again later.'
-                });
-            }
-            else
-            {
-                req.logout();
-                req.session.destroy();
-
-                return res.status(200).json(
-                {
-                    code: 'REMOVAL_SUCCESSFUL',
-                    description: 'User removed.'
-                });
+                flag = 1;
             }
         });
+
+        return flag;
     } 
     catch (error) 
     {
         console.log(error);
-        return res.status(500).json({
-            'code': 'SERVER_ERROR',
-            'description': 'something went wrong, Please try again'
-        });
+        return 2;
     }
 }
 
@@ -511,5 +597,7 @@ module.exports = {
     checkIfUserAlreadyRegistered: checkIfUserAlreadyRegistered,
     loadUserInfoMenuDrawer: loadUserInfoMenuDrawer,
     activateUser:activateUser,
-    reactivateUser:reactivateUser
+    reactivateUser:reactivateUser,
+    isAdmin:isAdmin,
+    adminDeleteUser:adminDeleteUser
 }

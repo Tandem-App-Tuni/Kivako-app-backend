@@ -22,6 +22,9 @@ router.get('/activate/*', userService.activateUser);
 //http://localhost:3000/api/v1/users/reactivate/email
 router.get('/reactivate/*', userService.reactivateUser);
 
+//http://localhost:3000/api/v1/users/isAdmin
+router.get('/isAdmin', userService.isAdmin);
+
 // Register a new user
 //http://localhost:3000/api/v1/users/add //POST REQUEST
 router.post('/add', userService.createUser);
@@ -34,6 +37,9 @@ router.post('/update', auth.isAuthenticated, userService.updateUser);
 // Delete user
 //http://localhost:3000/api/v1/users/delete
 router.delete('/delete', auth.isAuthenticated, userService.deleteUser);
+
+//http://localhost:3000/api/v1/users/deleteAdmin/
+router.get('/deleteAdmin/*', auth.isAuthenticated, userService.adminDeleteUser);
 
 
 

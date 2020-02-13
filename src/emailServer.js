@@ -31,7 +31,7 @@ const sendActivationEmail = async(user, activationKeyUrl) =>
     from: serverEmailAddress,
     to: user.email,
     subject: 'Unitandem account activation',
-    html: 'Welcome to Unitandem, ' + user.firstName + ' ' + user.lastName + '.Be sure that this is the latest ' +
+    html: 'Welcome to Unitandem, ' + user.firstName + ' ' + user.lastName + '. Be sure that this is the latest ' +
     'activation email you received. You can activate ' +
     'your account by <a href='+ activationKeyUrl +'>clicking on this link.</a>'
   })
