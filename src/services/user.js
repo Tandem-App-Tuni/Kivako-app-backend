@@ -4,6 +4,8 @@
 const User = require('../models/user');
 const Match = require('../models/match');
 const Room = require('../models/room');
+const ResetPassword = require('../models/resetPassword');
+
 var passwordHash = require('password-hash');
 const Helper = require('./helper')
 const EmailDomains = require('../emailDomains');
@@ -11,6 +13,7 @@ const fs = require('fs');
 const path = require('path');
 const constants = require('../configs/constants');
 const emailServer = require('../emailServer');
+const crypto = require('crypto');
 
 const checkIfUserAlreadyRegistered = async (req, res, next) => {
 
@@ -101,6 +104,12 @@ const isAdmin = async(req, res, next) =>
     }
 }
 
+function validEmail(email)
+{
+    return /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
+    .test(email);
+}
+
 const createUser = async (req, res, next) => 
 {
     try {
@@ -133,8 +142,7 @@ const createUser = async (req, res, next) =>
          * The following regex checks for approximate string validity.
          * The regex is available on https://emailregex.com/.
          */
-        if (!/(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
-        .test(email))
+        if (!validEmail(email))
         {
             console.log('Invalid email address!');
             return res.status(422).json({
@@ -237,7 +245,94 @@ const createUser = async (req, res, next) =>
     }
 }
 
-const activateUser = async(req, res, next) =>
+const resetPasswordRequestCheck = async (req, res, next) =>
+{
+    try
+    {
+        const email = req.body.email;
+        const token = req.body.token;
+
+        const resetForm = await ResetPassword.findOne({id:email, token:token});
+
+        if (resetForm !== null)
+        {
+            const hashedPassword = passwordHash.generate(req.body.password);
+            
+            User.findOneAndUpdate({email:email}, {password:hashedPassword}, (err) => 
+            {
+                if (err) 
+                {
+                    console.log('Error reseting password', err);
+                    res.status(500).json({});
+                }
+                else 
+                {
+                    ResetPassword.findOneAndRemove({email:email}, (err) =>
+                    {
+                        if (err) console.log('Error removing reset password form!', err); 
+                    });
+
+                    res.status(200).json({});
+                }
+            });
+        }
+        else res.status(500).json({});
+    }
+    catch (err)
+    {
+        console.log(err);
+
+        return res.status(500).json({});
+    }
+}
+
+const resetPasswordRequest = async (req, res, next) =>
+{
+    try
+    {
+        let email = req.path.split('/');
+        email = email[email.length - 1];
+
+        if (validEmail(email))
+        {
+            const user = await User.findOne({email:email});
+
+            if (user)
+            {
+                const form = await ResetPassword.findOne({id: email});
+                const token = crypto.randomBytes(8).toString('hex');
+
+                if (form && (new Date() - form.timestamp) >= 1)
+                {
+                    await ResetPassword.findOneAndUpdate({id:email}, {timestamp: new Date(), token:token}, err => 
+                    {
+                        if (err) console.log('Error updating passoword reset token',err);
+                    });
+                }
+                else
+                {
+                    await ResetPassword.create({id:email,token:token,timestamp:new Date()}, err => 
+                    {
+                        if (err) console.log('Error creating passoword reset token',err);
+                    });
+                }
+
+                emailServer.sendPasswordResetEmail(user, token);
+
+                return res.status(200).json({message:'Success'});
+            }
+            else return res.status(500).json({message:'Error'});
+        }
+    }
+    catch (error)
+    {
+        console.log(error);
+
+        return res.status(500).json({message:'Error'});
+    }
+}
+
+const activateUser = async (req, res, next) => 
 {
     try
     {
@@ -599,5 +694,7 @@ module.exports = {
     activateUser:activateUser,
     reactivateUser:reactivateUser,
     isAdmin:isAdmin,
-    adminDeleteUser:adminDeleteUser
+    adminDeleteUser:adminDeleteUser,
+    resetPasswordRequest:resetPasswordRequest,
+    resetPasswordRequestCheck:resetPasswordRequestCheck
 }

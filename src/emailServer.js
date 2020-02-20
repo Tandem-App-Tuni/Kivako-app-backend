@@ -22,26 +22,49 @@ transporter.verify((error, success) =>
   else console.log('Email server is online!');
 });
 
-const sendActivationEmail = async(user, activationKeyUrl) =>
+function sendEmail(to, subject, html)
 {
-  console.log('Sending email to (' + user.email + ')', activationKeyUrl);
-
   transporter.sendMail(
   {
     from: serverEmailAddress,
-    to: user.email,
-    subject: 'Unitandem account activation',
-    html: 'Welcome to Unitandem, ' + user.firstName + ' ' + user.lastName + '. Be sure that this is the latest ' +
-    'activation email you received. You can activate ' +
-    'your account by <a href='+ activationKeyUrl +'>clicking on this link.</a>'
+    to: to,
+    subject: subject,
+    html: html
   })
   .then((info, error) => 
   {
     if (error) console.log(error);
     console.log('Email server information:', info);
   });
+}
+
+const sendPasswordResetEmail = async(user, resetKey) =>
+{
+  console.log('Sending password email to (', user.email, ') ->', resetKey);
+
+  let to = user.email;
+  let subject = 'Unitandem password reset code';
+  let html = 'Hello ' + user.firstName + ' ' + user.lastName + '. You have requested a password reset for the Unitandem application.' +
+  ' If you did not request this, someone else has. Make sure that no one but you has access to your email account.' + 
+  ' Enter the following token <b>' + resetKey + '</b> in the "Reset token" field at the password reset page.';
+
+  sendEmail(to, subject, html);
+}
+
+const sendActivationEmail = async(user, activationKeyUrl) =>
+{
+  console.log('Sending email to (' + user.email + ')', activationKeyUrl);
+
+  let to = user.email;
+  let subject = 'Unitandem account activation';
+  let html = 'Welcome to Unitandem, ' + user.firstName + ' ' + user.lastName + '. Be sure that this is the latest ' +
+  'activation email you received. You can activate ' +
+  'your account by <a href='+ activationKeyUrl +'>clicking on this link.</a>';
+
+  sendEmail(to, subject, html);
 };
 
 module.exports ={
-    sendActivationEmail:sendActivationEmail
+    sendActivationEmail:sendActivationEmail,
+    sendPasswordResetEmail:sendPasswordResetEmail
 };

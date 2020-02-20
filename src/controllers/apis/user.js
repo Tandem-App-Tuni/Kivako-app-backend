@@ -41,7 +41,10 @@ router.delete('/delete', auth.isAuthenticated, userService.deleteUser);
 //http://localhost:3000/api/v1/users/deleteAdmin/
 router.get('/deleteAdmin/*', auth.isAuthenticated, userService.adminDeleteUser);
 
+//http://localhost:3000/api/v1/users/resetPasswordRequest
+router.get('/resetPasswordRequest/*', userService.resetPasswordRequest);
 
+router.post('/resetPasswordRequestCheck', userService.resetPasswordRequestCheck)
 
 
 module.exports = router;
