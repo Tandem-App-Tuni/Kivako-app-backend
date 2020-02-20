@@ -20,6 +20,16 @@
 
 * 5) You can now access the backends call using a browser or testing requisitions in other ways.
 
+# Run app in local machine:
+1. Clone the frontend Git repository for the Tandem application: https://github.com/Tandem-App-Tuni/Kivako-App.git. Switch to the devel branch for the latest versions.
+2. Clone back end.
+3. To configure the project to run localy you need to configure both the frontend and the backend applications.
+   For the frontend, locate the file app/src/config_constants.js. 
+   Change the LOCAL_TEST_ENVIRONMENT variable to true for local testing or false for deployment on a server.
+   For the backend, locate the src/configs/constants.js and do the same.
+4. Run backend according to first section in this readme
+5. To run the frontend go to the app directory and run: npm run start. (Make sure to install all dependencies first by npm install package.json, or do it individually)
+
 # Folder structure
  
  - auth: The folder contains help functions related to authentication of the user, as check if user is authenticated.
