@@ -1,5 +1,6 @@
 const serverEmailAddress =  'info@unitandem.fi';
 const nodemailer = require('nodemailer');
+const constants = require('./configs/constants')
 
 const transporter = nodemailer.createTransport({
   host: 'ssl0.ovh.net',
@@ -64,7 +65,18 @@ const sendActivationEmail = async(user, activationKeyUrl) =>
   sendEmail(to, subject, html);
 };
 
+const sendNewRequestNotificationEmail = (user, receiver) => 
+{
+    console.log(`sending new request notification email to ${receiver.email}`);
+    let to = receiver.email;
+    let subject = 'Hey! You have new partner request';
+    let html = `Hey ${receiver.firstName} ${receiver.lastName}, <b> ${user.firstName} ${user.lastName} </b> wants to become your partner. 
+                Click here <a href='${constants.frontEndURL}/match-requests'>to login</a>, accept and start studying now !!!` ;  
+    sendEmail(to, subject, html);
+}
+
 module.exports ={
     sendActivationEmail:sendActivationEmail,
-    sendPasswordResetEmail:sendPasswordResetEmail
+    sendPasswordResetEmail:sendPasswordResetEmail,
+    sendNewRequestNotificationEmail
 };
