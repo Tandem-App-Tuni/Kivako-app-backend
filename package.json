@@ -40,6 +40,7 @@
     "uuid": "^3.3.3"
   },
   "scripts": {
+    "start": "nodemon ./src/server.js",
     "test": "jest"
   },
   "eslintConfig": {
