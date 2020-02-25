@@ -69,7 +69,7 @@ const sendNewRequestNotificationEmail = (user, receiver) =>
 {
     console.log(`sending new request notification email to ${receiver.email}`);
     let to = receiver.email;
-    let subject = 'Hey! You have new partner request';
+    let subject = 'Hey! You have a new partner request';
     let html = `Hey ${receiver.firstName} ${receiver.lastName}, <b> ${user.firstName} ${user.lastName} </b> wants to become your partner. 
                 Click here <a href='${constants.frontEndURL}/match-requests'>to login</a>, accept and start studying now !!!` ;  
     sendEmail(to, subject, html);
