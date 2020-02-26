@@ -27,7 +27,7 @@
    For the frontend, locate the file app/src/config_constants.js. 
    Change the LOCAL_TEST_ENVIRONMENT variable to true for local testing or false for deployment on a server.
    For the backend, locate the src/configs/constants.js and do the same.
-4. Set up the connection to SMTP(email) server locally, perfer to "Set up SMTP server connection" section
+4. Set up the connection to SMTP(email) server locally, refer to "Set up SMTP server connection" section
 5. Run backend according to first section in this readme
 6. To run the frontend go to the app directory and run: npm run start. (Make sure to install all dependencies first by npm install package.json, or do it individually)
 
