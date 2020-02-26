@@ -27,8 +27,23 @@
    For the frontend, locate the file app/src/config_constants.js. 
    Change the LOCAL_TEST_ENVIRONMENT variable to true for local testing or false for deployment on a server.
    For the backend, locate the src/configs/constants.js and do the same.
-4. Run backend according to first section in this readme
-5. To run the frontend go to the app directory and run: npm run start. (Make sure to install all dependencies first by npm install package.json, or do it individually)
+4. Set up the connection to SMTP(email) server locally, perfer to "Set up SMTP server connection" section
+5. Run backend according to first section in this readme
+6. To run the frontend go to the app directory and run: npm run start. (Make sure to install all dependencies first by npm install package.json, or do it individually)
+
+# Set up SMTP server connection
+The application use SMTP server that set up in one of Tuni server to send email. All requirement for the connection is in place except the password of the server
+In backend, the code fetchs the node environment variable "PASS" in order to get the real server password. Hence, developer need to set up the node environment in their work station.
+
+## How to set up PASS environment variable
+Real server password is store in Microsoft Team in channel: **Documents**,  in folder **Official_Documentation**, file **App_Secret.docx**
+### MACOS
+    On MACOS, it's recommend adding export PASS=<enter_here_server_password> to your ~/.bash_profile and/or ~/.bashrc and/or ~/.profile
+    Remember to reset your terminal after adding the environment. 
+### LINUX
+    TBD - Key word for google, how to set node environment variable
+### WINDOWS
+    TBD - Key word for google, how to set node environment variable
 
 # Folder structure
  
