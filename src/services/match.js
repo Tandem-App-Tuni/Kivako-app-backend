@@ -10,7 +10,8 @@ var mongoose = require('mongoose');
 const Room = require('../models/room.js');
 const Constants = require('../configs/constants.js');
 
-const getPossibleMatchUsers = async (req, res, next) => {
+const getPossibleMatchUsers = async (req, res, next) => 
+{
     try 
     {
         console.log('Retrieving possible matches...');
@@ -116,7 +117,8 @@ const getPossibleMatchUsers = async (req, res, next) => {
 }
 
 // REQUESTS
-const getUserRequestedMatchsRequest = async (req, res, next) => {
+const getUserRequestedMatchsRequest = async (req, res, next) => 
+{
     try {
         const user = await Helper.getUserIdFromAuthenticatedRequest(req);
         const userID = user._id;
@@ -152,7 +154,8 @@ const getUserRequestedMatchsRequest = async (req, res, next) => {
     }
 }
 
-const getUserReceiptMatchsRequests = async (req, res, next) => {
+const getUserReceiptMatchsRequests = async (req, res, next) => 
+{
     try {
         const user = await Helper.getUserIdFromAuthenticatedRequest(req);
         const userID = user._id;
@@ -188,21 +191,15 @@ const getUserReceiptMatchsRequests = async (req, res, next) => {
     }
 }
 
-const sendNewMatchRequest = async (req, res, next) => {
-
-    try {
+const sendNewMatchRequest = async (req, res, next) => 
+{
+    try 
+    {
         const requesterUser = await Helper.getUserIdFromAuthenticatedRequest(req);
         const requesterUserID = requesterUser._id;
 
-        if (requesterUser.matches.length >= Constants.maxMatchCount)
-        {
-            return res.status(201).json(
-            {
-                'requested': false,
-                'status': 'fail'
-            });
-        }
-
+        if (requesterUser.matches.length >= Constants.maxMatchCount) return res.status(201).json({'requested': false,'status': 'fail'});
+        
         const recipientUserID = mongoose.Types.ObjectId(req.body.recipientID);
 
         // Check if a request for this user already exists
