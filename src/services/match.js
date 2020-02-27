@@ -5,6 +5,7 @@ const User = require('../models/user');
 const Helper = require('./helper');
 const Match = require('../models/match');
 var mongoose = require('mongoose');
+const emailServer = require('../emailServer');
 
 // Chat database structures
 const Room = require('../models/room.js');
@@ -201,6 +202,8 @@ const sendNewMatchRequest = async (req, res, next) =>
         if (requesterUser.matches.length >= Constants.maxMatchCount) return res.status(201).json({'requested': false,'status': 'fail'});
         
         const recipientUserID = mongoose.Types.ObjectId(req.body.recipientID);
+        const receiveRequestUser = await User.findById(recipientUserID);
+
 
         // Check if a request for this user already exists
         let matchUserAsRequester = await Match.findOne({
@@ -221,8 +224,8 @@ const sendNewMatchRequest = async (req, res, next) =>
             };
 
             let newMatch = await Match.create(temp);
-            //let newMatch = true
-
+            
+            emailServer.sendNewRequestNotificationEmail(requesterUser, receiveRequestUser)
             if (newMatch) {
                 return res.status(201).json({
                     'requested': true,
