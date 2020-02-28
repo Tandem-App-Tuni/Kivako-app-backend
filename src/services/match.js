@@ -506,52 +506,27 @@ const removeExistingMatch = async(req, res, next) =>
             const roomRemoved = await Room.findOne({roomId:roomId});
             if (roomRemoved != null) console.log('Room found!', roomRemoved);
 
-            const user0UpdatedRooms = user0.rooms.filter(element => element.localeCompare(roomId));
-            const user1UpdatedRooms = user1.rooms.filter(element => element.localeCompare(roomId));
+            const user0UpdatedRooms = user0.rooms.filter(element => element !== roomId);
+            const user1UpdatedRooms = user1.rooms.filter(element => element !== roomId);
 
-            const user0UpdatedMatches = user0.matches.filter(element => element.toString().localeCompare(matchData.matchId));
-            const user1UpdatedMatches = user1.matches.filter(element => element.toString().localeCompare(matchData.matchId));
+            const user0UpdatedMatches = user0.matches.filter(element => element.toString() !== matchData.matchId);
+            const user1UpdatedMatches = user1.matches.filter(element => element.toString() !== matchData.matchId);
 
-            User.findByIdAndUpdate(
-                {_id:user0._id},
+            await User.findByIdAndUpdate(
+                user0._id,
                 {rooms: user0UpdatedRooms,
-                matches: user0UpdatedMatches},
-                function(err, result) 
-                {
-                    if (err) console.log('Error updating user0:',err);
-                }
-            );
+                matches: user0UpdatedMatches});
 
-            User.findByIdAndUpdate(
+            await User.findByIdAndUpdate(
                 user1._id,
                 {rooms: user1UpdatedRooms,
-                matches: user1UpdatedMatches},
-                function(err, result) 
-                {
-                    if (err) console.log('Error updating user1:',err);
-                }
-            );
+                matches: user1UpdatedMatches});
 
-            Match.findByIdAndRemove(
-                match._id,
-                function(err, result)
-                {
-                    if (err) console.log('Error removing match:',err);
-                }
-            );
+            await Match.findByIdAndRemove(match._id);
 
-            Room.findOneAndRemove(
-                {roomId:roomId},
-                function(err, result)
-                {
-                    if (err) console.log('Error removing room:',err);
-                }
-            );
+            await Room.findOneAndRemove({roomId:roomId});
 
-            res.status(200).json(
-            {
-                'message': 'Match removed!'
-            });
+            res.status(200).json({'message': 'Match removed!'});
         }
         else 
         {
