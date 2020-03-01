@@ -66,6 +66,7 @@ var userSchema = new mongoose.Schema({
     type:[String]
   },
   matches:[{type: Schema.Types.ObjectId, ref: 'Match'}], // List of the matches that user has, counting current and historic ones.
+  
   isAdmin:{
     type: Boolean,
     required:true,
