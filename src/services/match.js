@@ -151,7 +151,7 @@ const getUserReceiptMatchsRequests = async (req, res, next) =>
     catch (error) 
     {
         console.log('Error in getUserReceiptMatchsRequests', error);
-        return res.status(500);
+        return res.status(500).json({});
     }
 }
 
@@ -182,6 +182,8 @@ const sendNewMatchRequest = async (req, res, next) =>
         let matchUserAsRequester = results[0];
         let matchUserAsRecipient = results[1];
 
+        console.log('');
+
         if ((matchUserAsRecipient === null) && (matchUserAsRequester === null)) 
         {
             const temp = 
@@ -193,14 +195,16 @@ const sendNewMatchRequest = async (req, res, next) =>
 
             let newMatch = await Match.create(temp);
 
-            User.findByIdAndUpdate(requesterUserID, {$push: {matches: newMatch._id}});
-            User.findByIdAndUpdate(recipientUserID, {$push: {matches: newMatch._id}});
+            p0 = User.findByIdAndUpdate(requesterUserID, {$push: {matches: newMatch._id}});
+            p1 = User.findByIdAndUpdate(recipientUserID, {$push: {matches: newMatch._id}});
             
-            emailServer.sendNewRequestNotificationEmail(requesterUser, receiveRequestUser);
+            //emailServer.sendNewRequestNotificationEmail(requesterUser, receiveRequestUser);
 
-            return res.status(200);
+            await Promise.all([p0, p1]);
+
+            return res.status(200).json({});
         }
-        else return res.status(400);
+        else return res.status(400).json({});
     } 
     catch (error) 
     {
@@ -215,12 +219,12 @@ const acceptNewMatchRequest = async (req, res, next) =>
     {
         const user = await Helper.getUserIdFromAuthenticatedRequest(req);
 
-        if (user.matches.length >= Constants.maxMatchCount) return res.status(200);
+        if (user.matches.length >= Constants.maxMatchCount) return res.status(200).json({});
 
         const matchId = req.params.matchId;
         const matchExists = await Match.findById(matchId);
 
-        if (!matchExists) return res.status(404);
+        if (!matchExists) return res.status(404).json({});
 
         let temp = 
         {
@@ -235,30 +239,37 @@ const acceptNewMatchRequest = async (req, res, next) =>
 
         if (updateMatch) 
         {
+            let p0 = await User.findById(matchExists.requesterUser);
+            let p1 = await User.findById(matchExists.recipientUser);
+
+            let results = await Promise.all([p0, p1]);
+            let updateRequestUser = results[0];
+            let updateReceipUser = results[1];
+
             // CREATE NEW CHAT ROOM
             let roomId = updateRequestUser.email + '|' + updateReceipUser.email;
             let roomVr = await Room.findOne({roomId: roomId});
 
             if (roomVr) throw new Error('Room already exists! Duplicated match request!', roomId);
 
-            let p0 = User.findByIdAndUpdate(matchExists.requesterUser, {$push: {rooms: roomId}});
-            let p1 = User.findByIdAndUpdate(matchExists.recipientUser, {$push: {rooms: roomId}});
+            p0 = User.findByIdAndUpdate(matchExists.requesterUser, {$push: {rooms: roomId}});
+            p1 = User.findByIdAndUpdate(matchExists.recipientUser, {$push: {rooms: roomId}});
 
             Room.create({roomId: roomId});
 
-            let results = await Promise.all([p0, p1]);
+            results = await Promise.all([p0, p1]);
             updateRequestUser = results[0];
             updateReceipUser = results[1];
 
-            if (updateRequestUser && updateReceipUser) return res.status(200);
-            else return res.status(500);
+            if (updateRequestUser && updateReceipUser) return res.status(200).json({});
+            else return res.status(500).json({});
         }
         else throw new Error('Updated match not created.');
     } 
     catch (error) 
     {
         console.log('Error in accpetNewMatchRequest', error);
-        return res.status(500);
+        return res.status(500).json({});
     }
 }
 
@@ -267,22 +278,25 @@ const denyMatchRequest = async (req, res, next) =>
     try 
     {
         const matchId = req.params.matchId;
-        const matchExists = await Match.findById(matchId);
+        const match = await Match.findById(matchId);
 
-        if (!matchExists) return res.status(404);
+        if (!match) return res.status(404);
         
-        const temp = 
+        /*const temp = 
         {
             status: 3,
             matchEndDate: Date.now()
         }
 
-        Match.findByIdAndUpdate(matchId, {$set: temp});
-        return res.status(200);
+        Match.findByIdAndUpdate(matchId, {$set: temp});*/
+
+        removeMatchHelper(match);
+
+        return res.status(200).json({});
     } 
     catch (error) 
     {
-        return res.status(500);
+        return res.status(500).json({});
     }
 }
 
@@ -291,8 +305,11 @@ const getUserCurrentActiveMatches = async (req, res, next) =>
     try 
     {
         let user = await User.findOne({email: req.user.email});
-        let userActiveMatchesList = await Match.find({$and: [{_id: {$in: user.matches}}, {status: {$eq: 2}}]});
+        let userActiveMatchesList = await Match.find({$and: [{_id: {$in: user.matches}}, {status: {$eq: 2}}]})
+        .populate('requesterUser').populate('recipientUser');
         
+        console.log(userActiveMatchesList);
+
         if (userActiveMatchesList) 
         {
             return res.status(200).json({
@@ -305,7 +322,7 @@ const getUserCurrentActiveMatches = async (req, res, next) =>
     catch (error) 
     {
         console.log('Error in getUserCurrentActiveMatches', error);
-        return res.status(500);
+        return res.status(500).json({});
     }
 }
 
@@ -319,51 +336,56 @@ const removeExistingMatch = async(req, res, next) =>
 
         if (match != null)
         {
-            console.log('Removing match:', match._id);
+            removeMatchHelper(match);
 
-            const user0 = await User.findById(match.requesterUser);
-            const user1 = await User.findById(match.recipientUser);
-
-            const roomId = user0.email + '|' + user1.email;
-
-            console.log('Removing room:',roomId);
-
-            const roomRemoved = await Room.findOne({roomId:roomId});
-            if (roomRemoved != null) console.log('Room found!', roomRemoved);
-
-            const user0UpdatedRooms = user0.rooms.filter(element => element !== roomId);
-            const user1UpdatedRooms = user1.rooms.filter(element => element !== roomId);
-
-            const user0UpdatedMatches = user0.matches.filter(element => element.toString() !== matchData.matchId);
-            const user1UpdatedMatches = user1.matches.filter(element => element.toString() !== matchData.matchId);
-
-            User.findByIdAndUpdate(
-                user0._id,
-                {rooms: user0UpdatedRooms,
-                matches: user0UpdatedMatches});
-
-            User.findByIdAndUpdate(
-                user1._id,
-                {rooms: user1UpdatedRooms,
-                matches: user1UpdatedMatches});
-
-            Match.findByIdAndRemove(match._id);
-
-            Room.findOneAndRemove({roomId:roomId});
-
-            res.status(200);
+            return res.status(200).json({});
         }
         else 
         {
             console.log('Match does not exist!');
-            res.status(500);
+            return res.status(500).json({});
         }
     }
     catch (error)
     {
         console.log(error);
-        res.status(500);
+        return res.status(500).json({});
     }
+}
+
+const removeMatchHelper = async(match) =>
+{
+    console.log('Removing match:', match._id);
+
+    const user0 = await User.findById(match.requesterUser);
+    const user1 = await User.findById(match.recipientUser);
+
+    const roomId = user0.email + '|' + user1.email;
+
+    console.log('Removing room:',roomId);
+
+    const roomRemoved = await Room.findOne({roomId:roomId});
+    if (roomRemoved != null) console.log('Room found!', roomRemoved);
+
+    const user0UpdatedRooms = user0.rooms.filter(element => element !== roomId);
+    const user1UpdatedRooms = user1.rooms.filter(element => element !== roomId);
+
+    const user0UpdatedMatches = user0.matches.filter(element => element.toString() !== match.matchId);
+    const user1UpdatedMatches = user1.matches.filter(element => element.toString() !== match.matchId);
+
+    User.findByIdAndUpdate(
+        user0._id,
+        {rooms: user0UpdatedRooms,
+        matches: user0UpdatedMatches}).exec();
+
+    User.findByIdAndUpdate(
+        user1._id,
+        {rooms: user1UpdatedRooms,
+        matches: user1UpdatedMatches}).exec();
+
+    Match.findByIdAndRemove(match._id).exec();
+
+    Room.findOneAndRemove({roomId:roomId}).exec();
 }
 
 module.exports = {
