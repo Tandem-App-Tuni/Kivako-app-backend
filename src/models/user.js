@@ -71,6 +71,10 @@ var userSchema = new mongoose.Schema({
     type: Boolean,
     required:true,
     default:false
+  },
+  profileVideoURL: {
+    type: String,
+    required: false
   }
 });
 

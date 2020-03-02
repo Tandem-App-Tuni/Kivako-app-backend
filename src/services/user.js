@@ -397,7 +397,7 @@ const reactivateUser = async(req, res, next) =>
                     lastName: user.lastName
                 }, constants.backEndUrl + '/api/v1/users/activate/' + activationKey);
 
-                User.findByIdAndUpdate(user._id, {activationKey: activationKey, activationStamp: new Date}, error => 
+                User.findByIdAndUpdate(user._id, {activationKey: activationKey, activationStamp: new Date()}, error => 
                 {
                     if (error)
                     {
@@ -436,7 +436,8 @@ const updateUser = async (req, res, next) =>
             descriptionText,
             languagesToTeach,
             languagesToLearn,
-            userIsActivie
+            userIsActivie, 
+            profileVideoURL
         } = req.body;
 
         let isUserExists = await User.findById(userId);
@@ -456,7 +457,8 @@ const updateUser = async (req, res, next) =>
             descriptionText: descriptionText,
             languagesToTeach: languagesToTeach,
             languagesToLearn: languagesToLearn,
-            userIsActivie: userIsActivie
+            userIsActivie: userIsActivie,
+            profileVideoURL:profileVideoURL
         }
 
         let updateUser = await User.findByIdAndUpdate(userId, temp, {
