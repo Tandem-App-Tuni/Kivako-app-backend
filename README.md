@@ -38,8 +38,11 @@ In backend, the code fetchs the node environment variable "PASS" in order to get
 ## How to set up PASS environment variable
 Real server password is store in Microsoft Team in channel: **Documents**,  in folder **Official_Documentation**, file **App_Secret.docx**
 ### MACOS
-    On MACOS, it's recommend adding export PASS=<enter_here_server_password> to your ~/.bash_profile and/or ~/.bashrc and/or ~/.profile
+    On MACOS, it's recommend adding export PASS=<enter_here_server_password> to your ~/.bash_profile
+    then run source ~/.bash_profile
     Remember to reset your terminal after adding the environment. 
+
+    Note: You will need to redo it everytime you reset your computer
 ### LINUX
     TBD - Key word for google, how to set node environment variable
 ### WINDOWS

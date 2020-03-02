@@ -198,7 +198,7 @@ const sendNewMatchRequest = async (req, res, next) =>
             p0 = User.findByIdAndUpdate(requesterUserID, {$push: {matches: newMatch._id}});
             p1 = User.findByIdAndUpdate(recipientUserID, {$push: {matches: newMatch._id}});
             
-            //emailServer.sendNewRequestNotificationEmail(requesterUser, receiveRequestUser);
+            emailServer.sendNewRequestNotificationEmail(requesterUser, receiveRequestUser);
 
             await Promise.all([p0, p1]);
 
