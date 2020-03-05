@@ -3,6 +3,8 @@ const fs = require('fs');
 const User = require('./models/user');
 const Room = require('./models/room.js');
 
+const activeUsers = new Map();
+
 /**
  * ChatServer creates a socket.io session, managing user ids
  * and total user count. Each user has different rooms they are subscribed to
@@ -14,12 +16,14 @@ const Room = require('./models/room.js');
  * @param {*} server The express server, cupling the http server with socket.io
  * @param {*} session The session of the server, shared with socket.io
  */
-var start = function (server, session) {
+var start = function (server, session) 
+{
     var shrdSession = require("express-socket.io-session");
     var io = require('socket.io').listen(server);
     io.use(shrdSession(session));
 
-    io.on('connection', (socket) => {
+    io.on('connection', async (socket) =>
+    {
         var passportSession = socket.handshake.session.passport;
 
         console.log('Trying to create connection...');
@@ -29,67 +33,76 @@ var start = function (server, session) {
          * Appropriate objects are created and sent to the client
          * for displaying.
          */
-        if ((typeof passportSession) != 'undefined') {
+        if ((typeof passportSession) != 'undefined') 
+        {
             let userId = passportSession.user.email;
 
-            User.findOne({
-                email: userId
-            }).then((userData) => {
-                if (!userData) {
-                    console.log('Did not find user with email:', userId, 'Report this to the mantainer!');
+            let user0 = await User.findOne({email: userId});
+            
+            if (!user0) 
+            {
+                console.log('Did not find user with email:', userId, 'Report this to the mantainer!');
+                socket.disconnect();
+                return;
+            }
+
+            activeUsers.set(userId, 1);
+
+            user0.rooms.forEach(async (roomId, index) => 
+            {
+                let secondUserId;
+                roomId.split('|').forEach((element) => 
+                {
+                    if (element != userId) secondUserId = element;
+                });
+
+                let room = await Room.findOne({roomId: roomId});
+                
+                if (!room) 
+                {
+                    console.log('Did not find room with id:', element, 'Report this to the mantainer!');
                     socket.disconnect();
                     return;
                 }
 
-                userData.rooms.forEach((roomId, index) => {
-                    let secondUserId;
-                    roomId.split('|').forEach((element) => {
-                        if (element != userId) secondUserId = element;
-                    });
+                let user1 = await User.findOne({email: secondUserId});
 
-                    Room.findOne({
-                        roomId: roomId
-                    }).then((roomData) => {
-                        if (!roomData) {
-                            console.log('Did not find room with id:', element, 'Report this to the mantainer!');
-                            socket.disconnect();
-                            return;
-                        }
+                if (!user1) 
+                {
+                    console.log('Did not find second user with email:', user1.email, 'Report this to the mantainer!');
+                    return;
+                }
 
-                        User.findOne({
-                            email: secondUserId
-                        }).then((secondUserData) => {
-                            if (!secondUserData) {
-                                console.log('Did not find second user with email:', secondUserData.email, 'Report this to the mantainer!');
-                                return;
-                            }
-
-                            socket.emit('initialization', {
-                                user: userId,
-                                roomInformation: {
-                                    roomId: roomId,
-                                    messages: roomData.messages
-                                },
-                                name: secondUserData.firstName + ' ' + secondUserData.lastName,
-                                email: secondUserId
-                            });
-                        });
-                    });
+                socket.emit('initialization', 
+                {
+                    user: userId,
+                    roomInformation: {
+                        roomId: roomId,
+                        messages: room.messages
+                    },
+                    name: user1.firstName + ' ' + user1.lastName,
+                    email: secondUserId
                 });
-
-                console.log('User email: ' + userId);
-                console.log('User connected sucessfully!');
             });
-        } else {
+
+            console.log('User email: ' + userId);
+            console.log('User connected sucessfully!');
+        } 
+        else 
+        {
             console.log('Disconnecting unauthorised client connection!');
             socket.disconnect();
         }
 
         /**
-         * Functino listens to socket disconnection events.
+         * Function listens to socket disconnection events.
          * */
-        socket.on('disconnect', function () {
+        socket.on('disconnect', function () 
+        {
             let userId = passportSession.user.email;
+
+            let removed = activeUsers.delete(userId);
+            console.log('Remove', removed);
 
             console.log('User information removed...disconnecting user ' + userId);
         });
@@ -100,7 +113,8 @@ var start = function (server, session) {
          * about the room the client is leaving and the room they are
          * trying to enter.
          * */
-        socket.on('subscribe', function (data) {
+        socket.on('subscribe', function (data) 
+        {
             console.log('Channel subscription request: ' + data.from, data.to + ' -> ' + passportSession.user.email);
 
             if (data.from != 'null') socket.leave(data.from);

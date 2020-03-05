@@ -156,7 +156,7 @@ const createUser = async (req, res, next) =>
         for (i = 0; i < EmailDomains.domains.domains.length; i++)
         {
             const domain = EmailDomains.domains.domains[i];
-            
+
             if (email.endsWith(domain))
             {
                 domainFlag = true;
