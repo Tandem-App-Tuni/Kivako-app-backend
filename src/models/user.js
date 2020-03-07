@@ -75,6 +75,10 @@ var userSchema = new mongoose.Schema({
   profileVideoURL: {
     type: String,
     required: false
+  },
+  chatNotification:
+  {
+    type: Boolean
   }
 });
 

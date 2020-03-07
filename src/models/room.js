@@ -22,15 +22,21 @@ var messageSchema = new Schema(
 
 var roomSchema = new Schema(
     {
-        roomId:
+        messages:
+        {
+            type: [messageSchema]
+        },
+        user0:
         {
             type: String,
             required: true
         },
-        messages:
+        user1:
         {
-            type: [messageSchema]
-        }
+            type: String,
+            required: true
+        },
+        
     });
 
 module.exports = mongoose.model('Room', roomSchema);

@@ -241,27 +241,27 @@ const acceptNewMatchRequest = async (req, res, next) =>
         {
             let p0 = await User.findById(matchExists.requesterUser);
             let p1 = await User.findById(matchExists.recipientUser);
-
             let results = await Promise.all([p0, p1]);
-            let updateRequestUser = results[0];
-            let updateReceipUser = results[1];
 
-            // CREATE NEW CHAT ROOM
-            let roomId = updateRequestUser.email + '|' + updateReceipUser.email;
-            let roomVr = await Room.findOne({roomId: roomId});
+            let user0 = results[0];
+            let user1 = results[1];
 
-            if (roomVr) throw new Error('Room already exists! Duplicated match request!', roomId);
+            p0 = Room.findOne({user0:user0.email, user1:user1.email});
+            p1 = Room.findOne({user0:user1.email, user1:user0.email});
+            results = await Promise.all([p0, p1]);
 
-            p0 = User.findByIdAndUpdate(matchExists.requesterUser, {$push: {rooms: roomId}});
-            p1 = User.findByIdAndUpdate(matchExists.recipientUser, {$push: {rooms: roomId}});
+            if (results[0] || results[1]) throw new Error('Room already exists! Duplicated match request!');
 
-            Room.create({roomId: roomId});
+            const room = await Room.create({user0:user0.email, user1:user1.email});
+
+            p0 = User.findByIdAndUpdate(matchExists.requesterUser, {$push: {rooms: room._id}});
+            p1 = User.findByIdAndUpdate(matchExists.recipientUser, {$push: {rooms: room._id}});
 
             results = await Promise.all([p0, p1]);
-            updateRequestUser = results[0];
-            updateReceipUser = results[1];
+            user0 = results[0];
+            user1 = results[1];
 
-            if (updateRequestUser && updateReceipUser) return res.status(200).json({});
+            if (user0 && user1) return res.status(200).json({});
             else return res.status(500).json({});
         }
         else throw new Error('Updated match not created.');
@@ -355,37 +355,55 @@ const removeExistingMatch = async(req, res, next) =>
 
 const removeMatchHelper = async(match) =>
 {
-    console.log('Removing match:', match._id);
+    try
+    {
+        console.log('[MATCH] Removing match:', match._id);
 
-    const user0 = await User.findById(match.requesterUser);
-    const user1 = await User.findById(match.recipientUser);
+        let p0 = User.findById(match.requesterUser);
+        let p1 = User.findById(match.recipientUser);
+        let results = await Promise.all([p0, p1]);
 
-    const roomId = user0.email + '|' + user1.email;
+        const user0 = results[0];
+        const user1 = results[1];
 
-    console.log('Removing room:',roomId);
+        console.log('[MATCH] Removing match between:', user0.email, user1.email);
 
-    const roomRemoved = await Room.findOne({roomId:roomId});
-    if (roomRemoved != null) console.log('Room found!', roomRemoved);
+        p0 = Room.findOne({user0:user0.email, user1:user1.email});
+        p1 = Room.findOne({user0:user1.email, user1:user0.email});
+        results = await Promise.all([p0, p1]);
 
-    const user0UpdatedRooms = user0.rooms.filter(element => element !== roomId);
-    const user1UpdatedRooms = user1.rooms.filter(element => element !== roomId);
+        const room = !results[0] ? results[1] : results[0];
+        const roomId = room._id;
 
-    const user0UpdatedMatches = user0.matches.filter(element => element.toString() !== match.matchId);
-    const user1UpdatedMatches = user1.matches.filter(element => element.toString() !== match.matchId);
+        console.log('[MATCH] user rooms', user0.matches, match._id, match._id !== user0.matches[0]);
 
-    User.findByIdAndUpdate(
-        user0._id,
-        {rooms: user0UpdatedRooms,
-        matches: user0UpdatedMatches}).exec();
+        const user0UpdatedRooms = user0.rooms.filter(element => element.toString() !== roomId.toString());
+        const user1UpdatedRooms = user1.rooms.filter(element => element.toString() !== roomId.toString());
 
-    User.findByIdAndUpdate(
-        user1._id,
-        {rooms: user1UpdatedRooms,
-        matches: user1UpdatedMatches}).exec();
+        const user0UpdatedMatches = user0.matches.filter(element => element.toString() !== match._id.toString());
+        const user1UpdatedMatches = user1.matches.filter(element => element.toString() !== match._id.toString());
 
-    Match.findByIdAndRemove(match._id).exec();
+        console.log('[MATCH] user rooms', user0UpdatedMatches, match._id);
 
-    Room.findOneAndRemove({roomId:roomId}).exec();
+        User.findByIdAndUpdate(
+            user0._id,
+            {rooms: user0UpdatedRooms,
+            matches: user0UpdatedMatches}).exec();
+
+        User.findByIdAndUpdate(
+            user1._id,
+            {rooms: user1UpdatedRooms,
+            matches: user1UpdatedMatches}).exec();
+
+        Match.findByIdAndRemove(match._id).exec();
+
+        Room.findOneAndRemove({_id:roomId}).exec();
+    }
+    catch (error)
+    {
+        console.log('[MATCH] Error in removeMatchHelper', error);
+    }
+        
 }
 
 module.exports = {
