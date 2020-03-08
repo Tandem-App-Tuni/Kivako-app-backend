@@ -96,6 +96,12 @@ var start = function (server, session)
             }
         });
 
+        socket.on('adminGlobal', function(e) 
+        {
+            console.log('[CHAT] Global message', e.message);
+            io.sockets.emit('broadcast', {message: e.message});
+        });
+
         socket.on('disconnect', function () 
         {
             try
@@ -172,6 +178,8 @@ var start = function (server, session)
         socket.on('checkNotifications', async function() 
         {
             let user = await User.findOne({email:passportSession.user.email}, 'chatNotification');
+
+            console.log('[CHAT] User to send notification:', user);
 
             if (user.chatNotification) socket.emit('notification', {});
         });

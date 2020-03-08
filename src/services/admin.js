@@ -67,22 +67,12 @@ const getStudentUsers = async (req, res, next) =>
             matches: 0
         });
 
-        if (users.length > 0) {
-            return res.status(200).json({
-                //'message': 'users fetched successfully',
-                'data': users
-            });
-        }
-
-        return res.status(404).json({
-            'code': 'BAD_REQUEST_ERROR',
-            'description': 'No users found in the system'
-        });
-    } catch (error) {
-        return res.status(500).json({
-            'code': 'SERVER_ERROR',
-            'description': 'something went wrong, Please try again'
-        });
+        if (users.length > 0) return res.status(200).json({data: users});
+        return res.status(404).json({data:[]});
+    } 
+    catch (error) 
+    {
+        return res.status(500).json({data:[]});
     }
 }
 
@@ -93,6 +83,8 @@ const getMatches = async (req, res, next) =>
         let matches = await Match.find({}, {_id:0, requesterUser: 1, recipientUser: 1})
                                  .populate('requesterUser', {_id:0, firstName:1, lastName:1})
                                  .populate('recipientUser', {_id:0, firstName:1, lastName:1});
+
+        matches = matches.filter(e => (e.requesterUser !== null) && (e.recipientUser !== null));
 
         return res.status(200).json({data: matches});
     }
