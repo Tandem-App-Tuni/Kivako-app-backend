@@ -9,7 +9,8 @@ var passwordHash = require('password-hash');
 
 const getLanguageStatitics = async (req, res, next) => 
 {
-    try {
+    try 
+    {
         let languageStatitics = []
 
         // Check in each learn language the possible matchs, and save this users in a list
@@ -53,7 +54,8 @@ const getLanguageStatitics = async (req, res, next) =>
     }
 }
 
-const getStudentUsers = async (req, res, next) => {
+const getStudentUsers = async (req, res, next) => 
+{
     try {
 
         let users = await User.find({
@@ -81,6 +83,22 @@ const getStudentUsers = async (req, res, next) => {
             'code': 'SERVER_ERROR',
             'description': 'something went wrong, Please try again'
         });
+    }
+}
+
+const getMatches = async (req, res, next) => 
+{
+    try
+    {
+        let matches = await Match.find({}, {_id:0, requesterUser: 1, recipientUser: 1})
+                                 .populate('requesterUser', {_id:0, firstName:1, lastName:1})
+                                 .populate('recipientUser', {_id:0, firstName:1, lastName:1});
+
+        return res.status(200).json({data: matches});
+    }
+    catch(error)
+    {
+        console.log('[ADMIN] Error in getMatches', error);
     }
 }
 
@@ -185,7 +203,8 @@ module.exports = {
     getLanguageStatitics: getLanguageStatitics,
     getStudentUsers: getStudentUsers,
     getAdminUsers: getAdminUsers,
-    createAdminUser: createAdminUser
+    createAdminUser: createAdminUser,
+    getMatches:getMatches
 };
 
 const languages = [
