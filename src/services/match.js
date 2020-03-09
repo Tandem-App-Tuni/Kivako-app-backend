@@ -63,10 +63,9 @@ const getPossibleMatchUsers = async (req, res, next) =>
             languagesList.push(userLearnLanguages[i].language);
 
             let users = await User.find({
-                "languagesToTeach.language": userLearnLanguages[i].language,
-                "_id": {
-                    $nin: filterIds
-                }
+                'languagesToTeach.language': userLearnLanguages[i].language,
+                '_id': {$nin: filterIds},
+                'excludeFromMatching': false
             }, {
                 userIsActivie: 0,
                 lastUserAccess: 0,

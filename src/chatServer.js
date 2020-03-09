@@ -98,8 +98,15 @@ var start = function (server, session)
 
         socket.on('adminGlobal', function(e) 
         {
-            console.log('[CHAT] Global message', e.message);
-            io.sockets.emit('broadcast', {message: e.message});
+            try
+            {
+                console.log('[CHAT] Global message', e.message);
+                io.sockets.emit('broadcast', {message: e.message});
+            }
+            catch (error)
+            {
+                console.log('[CHAT] Error in adminGlobal', error);
+            }
         });
 
         socket.on('disconnect', function () 
@@ -177,11 +184,18 @@ var start = function (server, session)
 
         socket.on('checkNotifications', async function() 
         {
-            let user = await User.findOne({email:passportSession.user.email}, 'chatNotification');
+            try
+            {
+                let user = await User.findOne({email:passportSession.user.email}, 'chatNotification');
 
-            console.log('[CHAT] User to send notification:', user);
+                console.log('[CHAT] User to send notification:', user);
 
-            if (user.chatNotification) socket.emit('notification', {});
+                if (user.chatNotification) socket.emit('notification', {});
+            }
+            catch (error)
+            {
+                console.log('[CHAT] Error in checkNotifications', error);
+            }
         });
 
         socket.on('message', async function (data) 

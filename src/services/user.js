@@ -122,7 +122,6 @@ const createUser = async (req, res, next) =>
             languagesToTeach,
             languagesToLearn,
             userIsActivie,
-            isAdmin,
             password
         } = req.body;
 

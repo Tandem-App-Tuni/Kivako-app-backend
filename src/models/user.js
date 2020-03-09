@@ -4,11 +4,13 @@ const Schema = mongoose.Schema;
 var languageSchema = new mongoose.Schema({ language: String, level: String, credits: Number }, { noId: true });
 
 var userSchema = new mongoose.Schema({
-  firstName: {
+  firstName: 
+  {
     type: String,
     required: true
   },
-  lastName: {
+  lastName: 
+  {
     type: String,
     required: true
   },
@@ -16,6 +18,12 @@ var userSchema = new mongoose.Schema({
   {
     type: Boolean,
     required: true,
+    default: false
+  },
+  excludeFromMatching:
+  {
+    type: Boolean,
+    requred: true,
     default: false
   },
   activationKey:
@@ -28,7 +36,8 @@ var userSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
-  email: {
+  email: 
+  {
     type: String,
     required: true
   },
@@ -37,27 +46,33 @@ var userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  cities: {
+  cities: 
+  {
     type: [String]
   },
-  descriptionText: {
+  descriptionText: 
+  {
     type: String,
     required: true
   },
-  languagesToTeach: {
+  languagesToTeach: 
+  {
     type: [languageSchema], // Format: {"language":"PT", "level": "B2", "credits": 3}
     required: true
   },
-  languagesToLearn: {
+  languagesToLearn: 
+  {
     type: [languageSchema], // Format: {"language":"PT", "level": "B2", "credits": 3}
     required: true
   },
-  userIsActivie:{
+  userIsActivie:
+  {
     type: Boolean,
     required: true,
     default:true
   },
-  lastUserAccess:{ 
+  lastUserAccess:
+  { 
     type: Date, 
     default: Date.now 
   },
@@ -67,12 +82,14 @@ var userSchema = new mongoose.Schema({
   },
   matches:[{type: Schema.Types.ObjectId, ref: 'Match'}], // List of the matches that user has, counting current and historic ones.
   
-  isAdmin:{
+  isAdmin:
+  {
     type: Boolean,
     required:true,
     default:false
   },
-  profileVideoURL: {
+  profileVideoURL: 
+  {
     type: String,
     required: false
   },
