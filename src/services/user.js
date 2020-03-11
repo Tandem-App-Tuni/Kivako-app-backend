@@ -202,18 +202,20 @@ const createUser = async (req, res, next) =>
 
         let activationKey = Helper.generateRandomActivationKey();
 
-        const temp = {
+        const temp = 
+        {
             firstName: firstName,
             lastName: lastName,
             email: email,
             activationKey: activationKey,
             activationStamp: new Date(),
             cities: cities,
-            descriptionText: descriptionText,
+            descriptionText: descriptionText ? descriptionText : 'No description.',
             languagesToTeach: languagesToTeach,
             languagesToLearn: languagesToLearn,
             userIsActivie: userIsActivie,
             isAdmin: false,
+            excludeFromMatching: false,
             password: hashedPassword,
         };
 
@@ -239,7 +241,7 @@ const createUser = async (req, res, next) =>
 
         return res.status(500).json({
             'code': 'SERVER_ERROR',
-            'description': 'something went wrong, Please try again'
+            'description': 'Something went wrong, Please try again and make sure all the fields are filled in!'
         });
     }
 }
@@ -453,7 +455,7 @@ const updateUser = async (req, res, next) =>
             lastName: lastName,
             email: email,
             cities: cities,
-            descriptionText: descriptionText,
+            descriptionText: descriptionText ? descriptionText : 'Hello there.',
             languagesToTeach: languagesToTeach,
             languagesToLearn: languagesToLearn,
             userIsActivie: userIsActivie,
@@ -476,7 +478,7 @@ const updateUser = async (req, res, next) =>
 
         return res.status(500).json({
             'code': 'SERVER_ERROR',
-            'description': 'something went wrong, Please try again'
+            'description': 'Something went wrong, Please try again and make sure every field is filled in!'
         });
     }
 }

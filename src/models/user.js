@@ -53,7 +53,8 @@ var userSchema = new mongoose.Schema({
   descriptionText: 
   {
     type: String,
-    required: true
+    required: true,
+    default: 'No description.'
   },
   languagesToTeach: 
   {

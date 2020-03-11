@@ -181,8 +181,6 @@ const sendNewMatchRequest = async (req, res, next) =>
         let matchUserAsRequester = results[0];
         let matchUserAsRecipient = results[1];
 
-        console.log('');
-
         if ((matchUserAsRecipient === null) && (matchUserAsRequester === null)) 
         {
             const temp = 
@@ -306,8 +304,6 @@ const getUserCurrentActiveMatches = async (req, res, next) =>
         let user = await User.findOne({email: req.user.email});
         let userActiveMatchesList = await Match.find({$and: [{_id: {$in: user.matches}}, {status: {$eq: 2}}]})
         .populate('requesterUser').populate('recipientUser');
-        
-        console.log(userActiveMatchesList);
 
         if (userActiveMatchesList) 
         {
