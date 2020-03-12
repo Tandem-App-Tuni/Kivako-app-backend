@@ -279,14 +279,6 @@ const denyMatchRequest = async (req, res, next) =>
 
         if (!match) return res.status(404);
         
-        /*const temp = 
-        {
-            status: 3,
-            matchEndDate: Date.now()
-        }
-
-        Match.findByIdAndUpdate(matchId, {$set: temp});*/
-
         removeMatchHelper(match);
 
         return res.status(200).json({});
@@ -368,12 +360,12 @@ const removeMatchHelper = async(match) =>
         results = await Promise.all([p0, p1]);
 
         const room = !results[0] ? results[1] : results[0];
-        const roomId = room._id;
+        const roomId = room ? room._id : undefined;
 
         console.log('[MATCH] user rooms', user0.matches, match._id, match._id !== user0.matches[0]);
 
-        const user0UpdatedRooms = user0.rooms.filter(element => element.toString() !== roomId.toString());
-        const user1UpdatedRooms = user1.rooms.filter(element => element.toString() !== roomId.toString());
+        const user0UpdatedRooms = room ? user0.rooms.filter(element => element.toString() !== roomId.toString()) : user0.rooms;
+        const user1UpdatedRooms = room ? user1.rooms.filter(element => element.toString() !== roomId.toString()) : user1.rooms;
 
         const user0UpdatedMatches = user0.matches.filter(element => element.toString() !== match._id.toString());
         const user1UpdatedMatches = user1.matches.filter(element => element.toString() !== match._id.toString());
@@ -392,7 +384,7 @@ const removeMatchHelper = async(match) =>
 
         Match.findByIdAndRemove(match._id).exec();
 
-        Room.findOneAndRemove({_id:roomId}).exec();
+        if (room) Room.findOneAndRemove({_id:roomId}).exec();
     }
     catch (error)
     {
