@@ -142,7 +142,7 @@ const getUserReceiptMatchsRequests = async (req, res, next) =>
         if (!user) return res.status(422).json({'code': 'REQUIRED_FIELD_MISSING','description': 'Request User ID is required!'}); 
         
         let usersMatchRequestList = await Match.find({$and: [{_id: {$in: user.matches}}, {recipientUser: {$eq: userID}}, {status: {$eq: 1}}]})
-                                          .populate('requesterUser', '-userIsActivie -lastUserAccess -__v');
+                                          .populate('requesterUser', '-userIsActivie -lastUserAccess -__v -password -matches -rooms -_id -isAdmin -userIsActive');
 
         return res.status(200).json({userReceiptMatches: usersMatchRequestList});
 
@@ -295,7 +295,7 @@ const getUserCurrentActiveMatches = async (req, res, next) =>
     {
         let user = await User.findOne({email: req.user.email});
         let userActiveMatchesList = await Match.find({$and: [{_id: {$in: user.matches}}, {status: {$eq: 2}}]})
-        .populate('requesterUser').populate('recipientUser');
+        .populate('requesterUser', '-password').populate('recipientUser', '-password -matches -rooms -_id -isAdmin -userIsActive');
 
         if (userActiveMatchesList) 
         {
