@@ -46,7 +46,9 @@ const domainObject =
      'humak.fi',
      'xamk.fi',
      'saimia.fi',
-     'lab.fi']
+     'lab.fi',
+     'univaasa.fi',
+     'uwasa.fi']
 };
 
 module.exports = {
