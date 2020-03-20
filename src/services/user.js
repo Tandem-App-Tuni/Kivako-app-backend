@@ -605,10 +605,11 @@ const helperDeleteUser = async (email) =>
                 if (err) console.log('Error removing match between users', email, secondUser.email, err);
             });
 
-            await Room.findByIdAndRemove(rooms[i]._id, (err) => 
-            {
-                if (err) console.log('Error removing room', rooms[i].roomId, err);
-            });
+            if (rooms[i])
+                await Room.findByIdAndRemove(rooms[i]._id, (err) => 
+                {
+                    if (err) console.log('Error removing room', rooms[i].roomId, err);
+                });
         }
 
         let avatar = path.join(constants.uploadsFolder, email);
@@ -699,5 +700,6 @@ module.exports = {
     isAdmin:isAdmin,
     adminDeleteUser:adminDeleteUser,
     resetPasswordRequest:resetPasswordRequest,
-    resetPasswordRequestCheck:resetPasswordRequestCheck
+    resetPasswordRequestCheck:resetPasswordRequestCheck,
+    helperDeleteUser:helperDeleteUser
 }

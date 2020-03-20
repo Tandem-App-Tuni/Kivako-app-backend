@@ -80,15 +80,9 @@ module.exports = function () {
         });
         server.use(appSession);
 
-        // Function creates the login strategy for application.
-        if (constants.localLoginStrategy) {
-            // Use local login strategy
-            loginStrategy.createLocalLogin(server);
-        } else {
-            // Use HAKA login strategy
-            loginStrategy.createSAMLLogin(server);
-        }
 
+        if (constants.localLoginStrategy) loginStrategy.createLocalLogin(server);
+        else loginStrategy.createSAMLLogin(server);
 
         // Set initial LOGIN routes
         async function checkIfUserIsRegistered(userEmail) {
@@ -112,33 +106,29 @@ module.exports = function () {
             return next();
         });
 
-        server.get('/login/check', async function (req, res) {
+        server.get('/login/check', async function (req, res) 
+        {
             let userAuthenticaded = req.isAuthenticated();
             console.log('/login/check -> Checking authentication:', userAuthenticaded, req.user);
 
-            if (userAuthenticaded) {
+            if (userAuthenticaded) 
+            {
                 let userAlreadyRegistered = await checkIfUserIsRegistered(req.user.email);
 
-                if (userAlreadyRegistered === null) {
+                if (userAlreadyRegistered === null) 
+                {
                     //User not registered
-                    console.log("[DEBUG]User not registered, redirecting to register page")
+                    console.log("[DEBUG] User not registered, redirecting to register page")
                     //res.redirect(frontEndURL + '/register');
                     res.send('/register');
-                } else {
-                    if(userAlreadyRegistered.isAdmin){
-                        // Redirect to admin system initial page
-                        res.send('/list-admins')
-                    }else{
-                        // Redirect to normal system initial page 
-                        res.send('/browse-match');
-                    }
-                    //console.log("[DEBUG]User already registered")
-                    
+                } 
+                else 
+                {
+                    if(userAlreadyRegistered.isAdmin) res.send('/list-admins')
+                    else res.send('/browse-match');
                 }
-            } else {
-                res.send('/');
-            }
-
+            } 
+            else res.send('/');
         });
 
         server.get('/login/redirected', function (req, res) 
@@ -200,7 +190,8 @@ module.exports = function () {
         chatServer.start(app, appSession);
 
         // Activate daily schedule functions
-        schedule.scheduleJob('0 0 * * *', function () {
+        schedule.scheduleJob('0 0 * * *', function () 
+        {
             dailyFunctions.runDailyFunctions();
         });
 
