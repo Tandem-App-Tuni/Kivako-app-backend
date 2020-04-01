@@ -66,7 +66,7 @@ var userSchema = new mongoose.Schema({
     type: [languageSchema], // Format: {"language":"PT", "level": "B2", "credits": 3}
     required: true
   },
-  userIsActivie:
+  isActive:
   {
     type: Boolean,
     required: true,

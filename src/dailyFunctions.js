@@ -45,13 +45,13 @@ const oneMonthInactiveUsers = async (req, res, next) =>
         var cutoff = new Date();
         cutoff.setDate(cutoff.getDate() - 31);
 
-        var inactiveUsers = await User.find({"lastUserAccess": {$lt: cutoff}});
+        var inactiveUsers = await User.find({"lastUserAccess": {$lt: cutoff}, isActive: true});
 
         for (i = 0; i < inactiveUsers.length; i++) 
         {
             let user = inactiveUsers[i];
 
-            await User.findByIdAndUpdate(user._id, {userIsActivie: false});
+            await User.findByIdAndUpdate(user._id, {isActive: false});
             Email.monthNotification(user);
         }
 
@@ -70,7 +70,7 @@ const oneYearInactiveUsers = async (req, res, next) =>
         var cutoff = new Date();
         cutoff.setDate(cutoff.getDate() - 364);
 
-        var inactiveUsers = await User.find({"lastUserAccess": {$lt: cutoff}})
+        var inactiveUsers = await User.find({"lastUserAccess": {$lt: cutoff}, isActive: false});
 
         for (i = 0; i < inactiveUsers.length; i++) 
         {
