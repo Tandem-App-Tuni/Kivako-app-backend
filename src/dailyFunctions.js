@@ -1,5 +1,6 @@
 //import schedule from 'node-schedule'
 const User = require('./models/user');
+const ResetPassword = require('./models/resetPassword');
 const Email = require('./emailServer')
 const UserService = require('./services/user');
 
@@ -8,8 +9,9 @@ const runDailyFunctions = async (req, res, next) =>
 {
     try {
         console.log("[DAILY] Running daily functions!")
-        oneMonthInactiveUsers();
         oneYearInactiveUsers();
+        oneMonthInactiveUsers();
+        removeOldResetPasswordForms();
         console.log("[DAILY] Daily functions finished!")
 
     } 
@@ -19,6 +21,21 @@ const runDailyFunctions = async (req, res, next) =>
     }
 }
 
+
+const removeOldResetPasswordForms = async (req, res, next) =>
+{
+    try
+    {
+        let cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - 1/24);
+
+        ResetPassword.deleteMany({timestamp: {$lt: cutoff}});
+    }
+    catch (error)
+    {
+        console.log('[DAILY] Error in removeOldResetPasswordForms', error);
+    }
+}
 
 // Set as inactive users that don't access the system in more than one month and send an info email.
 const oneMonthInactiveUsers = async (req, res, next) => 

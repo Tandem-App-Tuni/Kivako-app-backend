@@ -8,6 +8,7 @@ const cors = require('cors')
 const chatServer = require('../chatServer');
 const schedule = require('node-schedule')
 const dailyFunctions = require('../dailyFunctions')
+const maintenanceFunctions = require('../maintenanceFunctions')
 var favicon = require('serve-favicon');
 
 const loginStrategy = require('./loginStrategy')();
@@ -195,6 +196,11 @@ module.exports = function () {
             dailyFunctions.runDailyFunctions();
         });
 
+        schedule.scheduleJob('0 0 * * *', function () 
+        {
+            maintenanceFunctions.databaseCheck();
+        });
+        
         console.log("[INFO] Daily functions running succesfully!");
     };
 
