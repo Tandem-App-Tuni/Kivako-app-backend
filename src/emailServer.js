@@ -20,7 +20,7 @@ const transporter = nodemailer.createTransport({
 transporter.verify((error, success) => 
 {
   if (error) console.log(error);
-  else console.log('Email server is online!');
+  else console.log('[EMAIL] Email server is online!');
 });
 
 function sendEmail(to, subject, html)
@@ -35,13 +35,13 @@ function sendEmail(to, subject, html)
   .then((info, error) => 
   {
     if (error) console.log(error);
-    console.log('Email server information:', info);
+    console.log('[EMAIL] Email server information:', info);
   });
 }
 
 const sendPasswordResetEmail = async(user, resetKey) =>
 {
-  console.log('Sending password email to (', user.email, ') ->', resetKey);
+  console.log('[EMAIL] Sending password email to (', user.email, ') ->', resetKey);
 
   let to = user.email;
   let subject = 'Unitandem password reset code';
@@ -54,7 +54,7 @@ const sendPasswordResetEmail = async(user, resetKey) =>
 
 const sendActivationEmail = async(user, activationKeyUrl) =>
 {
-  console.log('Sending email to (' + user.email + ')', activationKeyUrl);
+  console.log('[EMAIL] Sending email to (' + user.email + ')', activationKeyUrl);
 
   let to = user.email;
   let subject = 'Unitandem account activation';
@@ -67,7 +67,7 @@ const sendActivationEmail = async(user, activationKeyUrl) =>
 
 const sendNewRequestNotificationEmail = (user, receiver) => 
 {
-    console.log(`sending new request notification email to ${receiver.email}`);
+    console.log(`[EMAIL] Sending new request notification email to ${receiver.email}`);
     let to = receiver.email;
     let subject = 'Hey! You have a new partner request';
     let html = `Hey ${receiver.firstName} ${receiver.lastName}, <b> ${user.firstName} ${user.lastName} </b> wants to become your partner. 
@@ -75,8 +75,32 @@ const sendNewRequestNotificationEmail = (user, receiver) =>
     sendEmail(to, subject, html);
 }
 
+const monthNotification = (user) =>
+{
+  console.log('[EMAIL] Sending one month inactivity notification!');
+  let to = user.email;
+  let subject = 'Inactive for over a month.'
+  let html = `Hello ${user.firstName} ${user.lastName}. It looks like you have not been active for over a month. ` + 
+             'Make sure to log back in if you wish to find new language partners.';
+
+  sendEmail(to, subject, html);
+}
+
+const yearNotification = (user) =>
+{
+  console.log('[EMAIL] Sending one year inactivity notification!');
+  let to = user.email;
+  let subject = 'Inactive for over a year.'
+  let html = `Hello ${user.firstName} ${user.lastName}. It looks like you have not been active for over a year. ` + 
+             'Your account has now be removed.';
+
+  sendEmail(to, subject, html);
+}
+
 module.exports ={
     sendActivationEmail:sendActivationEmail,
     sendPasswordResetEmail:sendPasswordResetEmail,
+    monthNotification:monthNotification,
+    yearNotification:yearNotification,
     sendNewRequestNotificationEmail
 };

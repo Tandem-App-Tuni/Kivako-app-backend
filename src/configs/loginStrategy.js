@@ -87,12 +87,17 @@ module.exports = function () {
         server.use(passport.initialize());
         server.use(passport.session());
 
-        server.post('/login', passport.authenticate('local', {
+        server.post('/login', passport.authenticate('local', 
+        {
                 failureRedirect: '/login/check'
             }),
-            function (req, res) 
+            async function (req, res) 
             {
-                console.log('Local login: Successfull login!', req.isAuthenticated());
+                console.log('[LOGIN] Local login: Successfull login!', req.isAuthenticated());
+                console.log('[LOGIN] User email:', req.user.email);
+
+                await User.findOneAndUpdate({email:req.user.email}, {$set: {lastUserAccess: new Date()}})
+
                 res.send('/login/check');
             }
         );

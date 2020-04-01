@@ -28,7 +28,7 @@ var start = function (server, session)
         var passportSession = socket.handshake.session.passport;
 
         console.log('[CHAT] Trying to create connection...', passportSession);
-        
+
         if (passportSession)
         {
             console.log('[CHAT] Session authenticated!');
@@ -211,7 +211,7 @@ var start = function (server, session)
 
                 socket.to(roomId).emit('message', message);
 
-                let room = await Room.findOneAndUpdate(roomId, {$push: {messages: message}});
+                let room = await Room.findByIdAndUpdate(roomId, {$push: {messages: message}});
                 let user1 = room.user0 !== userId ? room.user0 : room.user1;
 
                 if (!activeUsers.has(user1)) 
