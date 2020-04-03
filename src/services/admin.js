@@ -80,11 +80,11 @@ const getMatches = async (req, res, next) =>
 {
     try
     {
-        let matches = await Match.find({}, {_id:0, requesterUser: 1, recipientUser: 1})
-                                 .populate('requesterUser', {_id:0, firstName:1, lastName:1, languagesToTeach:1, languagesToLearn:1})
-                                 .populate('recipientUser', {_id:0, firstName:1, lastName:1, languagesToTeach:1, languagesToLearn:1});
+        let matches = await Match.find({}, {_id:0, requesterUser: 1, recipientUser: 1, status:1})
+                                 .populate('requesterUser', {_id:0, firstName:1, lastName:1, languagesToTeach:1, languagesToLearn:1, email:1})
+                                 .populate('recipientUser', {_id:0, firstName:1, lastName:1, languagesToTeach:1, languagesToLearn:1, email:1});
 
-        matches = matches.filter(e => (e.requesterUser !== null) && (e.recipientUser !== null));
+        matches = matches.filter(e => (e.requesterUser !== null) && (e.recipientUser !== null) && (e.status === 2));
 
         return res.status(200).json({data: matches});
     }
