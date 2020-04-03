@@ -14,6 +14,9 @@ package-lock.json
 # production
 /build
 
+#upload
+/src/configs/uploads
+
 # misc
 .DS_Store
 .env.local
