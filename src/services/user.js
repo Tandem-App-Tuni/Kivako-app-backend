@@ -57,8 +57,9 @@ const checkIfUserAlreadyRegistered = async (req, res, next) => {
 
 const getUserInformation = async (req, res, next) => {
     try {
-
-        const email = req.user.email;
+        //If the query string contains the userEmail parameter, we will fetch the info of that user
+        //Otherwise, info for loggedin user will be fetched
+        const email = req.query.userEmail ? req.query.userEmail : req.user.email;
         let user = await User.findOne({
             "email": email
         });
