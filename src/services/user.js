@@ -688,6 +688,23 @@ const loadUserInfoMenuDrawer = async (req, res, next) => {
     }
 }
 
+const setMatchingVisibility = async (req, res, next) =>
+{
+    try
+    {
+        let flag = req.body.flag;
+
+        if (flag !== undefined) await User.findOne({email:req.user.email}, {excludeFromMatching: flag});
+        else return res.status(500).json({});
+
+        return res.status(200).json({});
+    }
+    catch(error)
+    {
+        console.log('[USER] error in setMatchingVisibility', error);
+        return res.status(500).json({});
+    }
+}
 
 module.exports = {
     getUserInformation: getUserInformation,
@@ -702,5 +719,6 @@ module.exports = {
     adminDeleteUser:adminDeleteUser,
     resetPasswordRequest:resetPasswordRequest,
     resetPasswordRequestCheck:resetPasswordRequestCheck,
-    helperDeleteUser:helperDeleteUser
+    helperDeleteUser:helperDeleteUser,
+    setMatchingVisibility:setMatchingVisibility
 }

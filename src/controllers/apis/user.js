@@ -44,7 +44,11 @@ router.get('/deleteAdmin/*', auth.isAuthenticated, userService.adminDeleteUser);
 //http://localhost:3000/api/v1/users/resetPasswordRequest
 router.get('/resetPasswordRequest/*', userService.resetPasswordRequest);
 
+//http://localhost:3000/api/v1/users/resetPasswordRequestCheck
 router.post('/resetPasswordRequestCheck', userService.resetPasswordRequestCheck)
+
+//http://localhost:3000/api/v1/users/setMatchingVisibility
+router.post('/setMatchingVisibility', userService.setMatchingVisibility)
 
 
 module.exports = router;

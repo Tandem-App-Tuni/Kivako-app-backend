@@ -19,6 +19,7 @@ const getPossibleMatchUsers = async (req, res, next) =>
 
         //Get user request informations
         const userInfo = await Helper.getUserLoggedInfoWithEmail(req);
+        if (userInfo.excludeFromMatching) return res.status(200).json({'userPossibleMatches': []});
 
         // Get user informations to be used in search match database query
         const userLearnLanguages = userInfo.languagesToLearn;
