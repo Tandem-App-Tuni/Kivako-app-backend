@@ -6,19 +6,20 @@ var saml = require('passport-saml');
 var passwordHash = require('password-hash');
 const User = require('../models/user');
 
+const Logger = require('../log/logger');
 
-module.exports = function () {
+
+module.exports = function () 
+{
     passport.serializeUser(function (user, done) 
     {
-        console.log('User serialization...', user);
-        done(null, {
-            email: user.email
-        });
+        Logger.write('login', `User serialization ${user.email}`);
+        done(null, {email: user.email});
     });
 
     passport.deserializeUser(function (user, done) 
     {
-        console.log('User deserialization...', user);
+        Logger.write('login', `User deserialization ${user}`);
         done(null, user);
     });
 
@@ -44,7 +45,7 @@ module.exports = function () {
 
         server.get('/login', function (req, res, next) 
         {
-            console.log('SAML login: request for authentication!');
+            Logger.write('login', `SAML login: request for authentication!`);
             next();
         },
             passport.authenticate('samlStrategy')
@@ -52,13 +53,13 @@ module.exports = function () {
 
         server.post('/login/callback', function (req, res, next) 
         {
-            console.log('SAML login: callback response from ID!');
+            Logger.write('login', `SAML login: callback response from ID!`);
             next();
         },
             passport.authenticate('samlStrategy'),
             function (req, res) 
             {
-                console.log('SAML login: user logged in successfully!', req.session);
+                Logger.write('login', `SAML login: user logged in successfully!`);
                 res.redirect('/login/check');
             }
         );
@@ -93,8 +94,8 @@ module.exports = function () {
             }),
             async function (req, res) 
             {
-                console.log('[LOGIN] Local login: Successfull login!', req.isAuthenticated());
-                console.log('[LOGIN] User email:', req.user.email);
+                Logger.write('login', `Local login successful ${req.isAuthenticated()}`);
+                Logger.write('login', `User email ${req.user.email}`);
 
                 await User.findOneAndUpdate({email:req.user.email}, {$set: {lastUserAccess: new Date()}})
 
@@ -104,7 +105,7 @@ module.exports = function () {
 
         server.post('/register-user', function (req, res, next) 
         {
-            console.log('Register request:', req.body);
+            Logger.write('login', `Register user request ${req.body.email}`);
 
             let email = req.body.email;
             let password = req.body.password;
@@ -113,16 +114,21 @@ module.exports = function () {
 
             User.findOne({
                 email: email
-            }).then((credentialsData) => {
-                if (!credentialsData) {
+            })
+            .then((credentialsData) => 
+            {
+                if (!credentialsData) 
+                {
                     User.create({
                         email: email,
                         password: hashedPassword
-                    }).then(newCredentials => {
+                    }).then(newCredentials => 
+                    {
                         if (!newCredentials) res.send('User has not been registered successfully...try again later!');
                         else res.send('User has registered successfully!');
                     });
-                } else res.send('User already exists!');
+                } 
+                else res.send('User already exists!');
             });
         });
     };
