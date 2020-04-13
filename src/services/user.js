@@ -693,11 +693,12 @@ const setMatchingVisibility = async (req, res, next) =>
     try
     {
         let flag = req.body.flag;
-
-        if (flag !== undefined) await User.findOne({email:req.user.email}, {excludeFromMatching: flag});
+        if (flag !== undefined)
+        {
+            await User.findOneAndUpdate({email:req.user.email}, {excludeFromMatching: flag});
+            return res.status(200).json({ excludeFromMatching: flag });
+        } 
         else return res.status(500).json({});
-
-        return res.status(200).json({});
     }
     catch(error)
     {
