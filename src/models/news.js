@@ -19,19 +19,21 @@ var newsSchema = new mongoose.Schema({
   createdAt:
   {
     type: Date,
-    required: true
   },
   updatedAt: 
   {
     type: Date,
-    required: true
   },
 });
 
 newsSchema.pre('save', function (next) {
+  if(this.isNew) {
+    this.createdAt = new Date();
+  }
   this.updatedAt = new Date();
   next();
 });
+
 
 const News = mongoose.model('News', newsSchema);
 module.exports = News;
