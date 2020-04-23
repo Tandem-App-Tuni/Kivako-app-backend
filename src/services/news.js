@@ -94,7 +94,7 @@ const deleteNews = async (req, res, next) =>
       if (!ObjectId.isValid(newsId)) return res.status(400).send("Invalid type of Id");
 
       await News.findByIdAndRemove(newsId);
-      return res.status(200);
+      return res.status(200).send();
 
     } catch (error) 
     {
