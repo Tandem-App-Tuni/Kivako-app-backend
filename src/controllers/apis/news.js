@@ -17,10 +17,10 @@ router.get('/:id', newsService.getNewsById);
 
 //Update a news by newsId
 //http://localhost:3000/api/v1/news/{id} // PUT REQUEST
-router.put('/:id', auth.checkIfUserIsAuthenticatedAndAdmin , newsService.updateNews);
+router.put('/:id', auth.checkIfUserIsAuthenticatedAndAdmin, newsService.updateNews);
 
 //Delete a news by newsId
-//http://localhost:3000/api/v1/admin/studentUsers // DELETE REQUEST
-router.delete('/:id', auth.checkIfUserIsAuthenticatedAndAdmin , newsService.deleteNews);
+//http://localhost:3000/api/v1/news/{id} // DELETE REQUEST
+router.delete('/:id', auth.checkIfUserIsAuthenticatedAndAdmin, newsService.deleteNews);
 
 module.exports = router;
