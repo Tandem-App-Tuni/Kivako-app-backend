@@ -69,7 +69,7 @@ const updateNews = async (req, res, next) =>
 
       if (!ObjectId.isValid(newsId)) return res.status(400).send("Invalid type of Id");
 
-      const news = await News.findOneAndUpdate({ _id:newsId }, { title, content, author }, { new: true});
+      const news = await News.findOneAndUpdate({ _id:newsId }, { title, content, author, updatedAt: new Date() }, { new: true});
       return res.status(200).json(news);
 
     } catch (error) 
