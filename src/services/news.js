@@ -1,6 +1,3 @@
-/********
- * user.js file (services/users)
- ********/
 const News = require('../models/news');
 const { ObjectId } = require('mongoose').Types;
 
