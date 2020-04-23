@@ -95,7 +95,7 @@ const getPossibleMatchUsers = async (req, res, next) =>
         }
 
         for (j = 0; j < sendArrayFormated.length; j++)
-            sendArrayFormated[j].matches.sort((e0, e1) => e0.fitQuality < e1.fitQuality);
+            sendArrayFormated[j].matches.sort((e0, e1) => e1.fitQuality - e0.fitQuality);
 
         return res.status(200).json({'userPossibleMatches': sendArrayFormated});
     } 
@@ -196,7 +196,7 @@ const sendNewMatchRequest = async (req, res, next) =>
             p0 = User.findByIdAndUpdate(requesterUserID, {$push: {matches: newMatch._id}});
             p1 = User.findByIdAndUpdate(recipientUserID, {$push: {matches: newMatch._id}});
             
-            emailServer.sendNewRequestNotificationEmail(requesterUser, receiveRequestUser);
+            // emailServer.sendNewRequestNotificationEmail(requesterUser, receiveRequestUser);
 
             await Promise.all([p0, p1]);
 
