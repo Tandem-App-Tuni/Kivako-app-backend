@@ -19,7 +19,6 @@ module.exports = function ()
 
     passport.deserializeUser(function (user, done) 
     {
-        Logger.write('login', `User deserialization ${user}`);
         done(null, user);
     });
 

@@ -5,7 +5,7 @@ const express = require('express');
 const User = require('../models/user');
 const Match = require('../models/match');
 var passwordHash = require('password-hash');
-
+const Logger = require('../log/logger');
 
 const getLanguageStatitics = async (req, res, next) => 
 {
@@ -45,7 +45,7 @@ const getLanguageStatitics = async (req, res, next) =>
 
     } catch (error) 
     {
-        console.log(error);
+        Logger.write('admin', `Error in getLanguageStatistics ${error}`, 2);
 
         return res.status(500).json({
             'code': 'SERVER_ERROR',
@@ -56,8 +56,8 @@ const getLanguageStatitics = async (req, res, next) =>
 
 const getStudentUsers = async (req, res, next) => 
 {
-    try {
-
+    try 
+    {   
         let users = await User.find({
             "isAdmin": false
         }, {
@@ -72,6 +72,8 @@ const getStudentUsers = async (req, res, next) =>
     } 
     catch (error) 
     {
+        Logger.write('admin', `Error in getStudentUsers ${error}`, 2);
+
         return res.status(500).json({data:[]});
     }
 }
@@ -90,6 +92,8 @@ const getMatches = async (req, res, next) =>
     }
     catch(error)
     {
+        Logger.write('admin', `Error in getMatches ${error}`, 2);
+
         console.log('[ADMIN] Error in getMatches', error);
     }
 }
@@ -117,6 +121,8 @@ const getAdminUsers = async (req, res, next) => {
             'description': 'No users found in the system'
         });
     } catch (error) {
+        Logger.write('admin', `Error in getAdminUsers ${error}`, 2);
+
         return res.status(500).json({
             'code': 'SERVER_ERROR',
             'description': 'something went wrong, Please try again'
@@ -184,6 +190,8 @@ const createAdminUser = async (req, res, next) => {
             throw new Error('something went worng');
         }
     } catch (error) {
+        Logger.write('admin', `Error in createAdminUser ${error}`, 2);
+
         return res.status(500).json({
             'code': 'SERVER_ERROR',
             'description': 'something went wrong, Please try again'

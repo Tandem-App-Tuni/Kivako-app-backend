@@ -1,13 +1,16 @@
 const fs = require('fs');
 const path = require('path');
+const schedule = require('node-schedule');
 
+const FILE_SIZE_LIMIT_MEGABYTES = 1; 
 const loggingModules = 
 [
     'match',
     'user',
     'chat',
     'logger',
-    'login'
+    'login',
+    'admin'
 ];
 
 const logSeverity = 
@@ -20,6 +23,70 @@ const logSeverity =
 let writeModules = {};
 
 function init()
+{
+    try
+    {
+        setWriterModuls();
+        schedule.scheduleJob('0 0 * * *', () => 
+        {
+            fileSizeCheck();
+            closeModuls();
+            setWriterModuls();
+
+            console.log('[LOGGER] Modules reset check compleated.');
+        });
+    }
+    catch(error)
+    {
+        console.log('[LOGGER] Error in init', error);
+    }
+}
+
+function fileSizeCheck()
+{
+    try
+    {
+        for (let k in writeModules)
+        {
+            const module = writeModules[k];
+            const fileSize = fs.statSync(module[2].path).size;
+
+            if ((fileSize/1000000) >= FILE_SIZE_LIMIT_MEGABYTES)
+            {
+                let timeStamp = new Date().toISOString().replace(/\..+/, '').replace(/T([0-9]+:)+[0-9]*/, '');
+                const newFileName = path.join(__dirname, k + '_' + timeStamp + '_' + String(module[1] + 1));
+
+                fs.appendFileSync(newFileName, '');
+
+                console.log('[LOGGER] Adding new module', newFileName);
+            }
+        }
+    }
+    catch(error)
+    {
+        console.log('[LOGGER] Error in fileSizeCheck', error);
+    }
+}
+
+function closeModuls()
+{
+    try
+    {
+        for (let k in writeModules) 
+        {
+            console.log('[LOGGER] Closing', k);
+            writeModules[k][2].close();
+        }
+
+        writeModules = {};
+    }
+    catch(error)
+    {
+        console.log('[LOGGER] Error in closeModuls', error);
+    }
+}
+
+function setWriterModuls()
 {
     try
     {
@@ -44,11 +111,11 @@ function init()
             else writeModules[mod] = [file, mx, fs.createWriteStream(path.join(__dirname, file), {flags: 'a', encoding: null, mode:0666})];
         }
 
-        console.log('[LOGGER] Logger initialized...');
+        console.log('[LOGGER] Logger moduls set...');
     }
     catch(error)
     {
-        console.log('[LOGGER] Error in init', error);
+        console.log('[LOGGER] Error in setWriterModuls', error);
     }
 }
 
