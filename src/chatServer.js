@@ -3,8 +3,11 @@ const fs = require('fs');
 const User = require('./models/user');
 const Room = require('./models/room.js');
 
+const Logger = require('./log/logger');
+
 const activeUsers = new Map();
 const loggedInUsers = new Map();
+
 
 /**
  * ChatServer creates a socket.io session, managing user ids
@@ -27,16 +30,16 @@ var start = function (server, session)
     {
         var passportSession = socket.handshake.session.passport;
 
-        console.log('[CHAT] Trying to create connection...', passportSession);
+        Logger.write('chat', `Trying to create connection ${passportSession}`);
 
         if (passportSession)
         {
-            console.log('[CHAT] Session authenticated!');
+            Logger.write('chat', `Session authenticated!`);
             loggedInUsers.set(passportSession.user.email, socket);
         }
         else
         {
-            console.log('[CHAT] Disconnecting unauthorised client connection!');
+            Logger.write('chat', `Disconnecting unauthorised client connection!`);
             socket.disconnect();
         }
 
@@ -51,7 +54,7 @@ var start = function (server, session)
                     
                     if (!user0) 
                     {
-                        console.log('[CHAT] Did not find user with email:', userId);
+                        Logger.write('chat', `Did not find user with email ${userId}`, 2);
                         socket.disconnect();
                         return;
                     }
@@ -66,7 +69,7 @@ var start = function (server, session)
                         
                         if (!user1) 
                         {
-                            console.log('[CHAT] Maybe did not find second user with email:', user1.email);
+                            Logger.write('chat', `Maybe did not find second user with email ${user1.email}`, 2);
                             socket.disconnect();
                             return;
                         }
@@ -86,13 +89,13 @@ var start = function (server, session)
 
                     await User.findByIdAndUpdate(user0._id, {chatNotification: false}).exec();
 
-                    console.log('[CHAT] User email: ' + userId);
-                    console.log('[CHAT] User connected to the chat successfully!');
+                    Logger.write('chat', `User email ${userId}`);
+                    Logger.write('chat', `User connected to the chat successfully!`);
                 } 
             }
             catch(error)
             {
-                console.log('[CHAT ERROR] Error in chatInitialization', error);
+                Logger.write('chat', `Error in chatInitialization ${error}`, 2);
             }
         });
 
@@ -100,12 +103,12 @@ var start = function (server, session)
         {
             try
             {
-                console.log('[CHAT] Global message', e.message);
+                Logger.write('chat', `Global message ${e.message}`);
                 io.sockets.emit('broadcast', {message: e.message});
             }
             catch (error)
             {
-                console.log('[CHAT] Error in adminGlobal', error);
+                Logger.write('chat', `Error in adminGlobal ${error}`, 2);
             }
         });
 
@@ -116,16 +119,16 @@ var start = function (server, session)
                 if (passportSession)
                 {
                     let userId = passportSession.user.email;
-                    console.log('[CHAT] User with id', userId, 'disconnected.');
+                    Logger.write('chat', `User with id ${userId} disconnected.`);
 
                     if (activeUsers.has(userId)) activeUsers.delete(userId);
                     loggedInUsers.delete(userId);
                 }
-                else console.log('[CHAT] User disconnected.', socket.handshake.session.passport);
+                else Logger.write('chat', `User disconnected ${socket.handshake.session.passport}.`);
             }
             catch (error)
             {
-                console.log('[CHAT] Error disconnecting from the chat server', error);
+                Logger.write('chat', `Error disconnecting from the chat server ${error}`);
             }
         });
 
@@ -134,7 +137,7 @@ var start = function (server, session)
             try
             {
                 const userId = passportSession.user.email;
-                console.log('[CHAT] Channel subscription request: ' + data.from, data.to + ' -> ' + passportSession.user.email);
+                Logger.write('chat', `Channel subscription request: ${data.from} ${data.to} -> ${passportSession.user.email}`);
 
                 if (data.from != 'null') socket.leave(data.from);
                 if (data.to != 'null') 
@@ -145,13 +148,13 @@ var start = function (server, session)
 
                     if (!room) 
                     {
-                        console.log('[CHAT] Room with ID', data.to, 'not found!');
+                        Logger.write('chat', `Room with ID ${data.to} not found.`, 2);
                         return;
                     }
 
                     if ((userId !== room.user0) && (userId !== room.user1))
                     {
-                        console.log('[CHAT] User ' + passportSession.user.email + ' requested invalid room!');
+                        Logger.write('chat', `User ${passportSession.user.email} requested invalid room!`, 2);
                         socket.disconnect();
                         return;
                     }
@@ -165,7 +168,7 @@ var start = function (server, session)
             }
             catch (error)
             {
-                console.log('[CHAT ERROR] Error in subscribe', error);
+                Logger.write('chat', `Error in subscribe ${error}.`, 2);
             }
         });
 
@@ -173,12 +176,12 @@ var start = function (server, session)
         {
             try
             {
-                console.log('[CHAT] User', passportSession.user.email, 'leaving the chat!');
+                Logger.write('chat', `User ${passportSession.user.email} leaving the chat.`);
                 activeUsers.delete(passportSession.user.email);
             }
             catch(error)
             {
-                console.log('[CHAT ERROR] Error in chatLeave', error);
+                Logger.write('chat', `Error in chatLeave ${error}.`);
             }
         });        
 
@@ -188,13 +191,14 @@ var start = function (server, session)
             {
                 let user = await User.findOne({email:passportSession.user.email}, 'chatNotification');
 
-                console.log('[CHAT] User to send notification:', user);
+                Logger.write('chat', `User to send notification: ${user}`);
 
                 if (user.chatNotification) socket.emit('notification', {});
             }
             catch (error)
             {
                 console.log('[CHAT] Error in checkNotifications', error);
+                Logger.write('chat', `Error in checkNotifications ${error}`);
             }
         });
 
@@ -208,6 +212,7 @@ var start = function (server, session)
                 let roomId = data.roomId;
 
                 console.log('[CHAT] Message recieved from user', user, 'from room', roomId, '->', message);
+                Logger.write('chat', `Disconnecting unauthorised client connection!`);
 
                 socket.to(roomId).emit('message', message);
 
@@ -219,10 +224,12 @@ var start = function (server, session)
                     await User.findOneAndUpdate({email:user1}, {chatNotification: true});
 
                     console.log('[CHAT] User logged in', loggedInUsers.has(user1));
+                    Logger.write('chat', `Disconnecting unauthorised client connection!`);
 
                     if (loggedInUsers.has(user1)) 
                     {
                         console.log('[CHAT] Sending notificaiton!');
+                        Logger.write('chat', `Disconnecting unauthorised client connection!`);
                         loggedInUsers.get(user1).emit('notification', {});
                     }
                 }
@@ -230,11 +237,13 @@ var start = function (server, session)
             catch (error)
             {
                 console.log('[CHAT ERROR] Error in message', error);
+                Logger.write('chat', `Disconnecting unauthorised client connection!`);
             }
         });
     });
 
     console.log('[CHAT] ChatServer online!');
+    Logger.write('chat', `Disconnecting unauthorised client connection!`);
 };
 
 

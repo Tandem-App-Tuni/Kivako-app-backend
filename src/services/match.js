@@ -10,6 +10,7 @@ const emailServer = require('../emailServer');
 // Chat database structures
 const Room = require('../models/room.js');
 const Constants = require('../configs/constants.js');
+const Logger = require('../log/logger');
 
 const getPossibleMatchUsers = async (req, res, next) => 
 {
@@ -28,7 +29,7 @@ const getPossibleMatchUsers = async (req, res, next) =>
         let filterIds = [userID];
         let languagesList = [];
 
-        console.log('User ID:', userID);
+        Logger.log('match', `User ID for getPossibleMatchUsers request ${userID}`);
 
         if (userInfo.matches.length > Constants.maxMatchCount)
         {
@@ -44,9 +45,6 @@ const getPossibleMatchUsers = async (req, res, next) =>
 
             if (match) filterIds.push(userID.equals(match.requesterUser) ? match.recipientUser : match.requesterUser);
         }
-
-        console.log('User matches number:', userInfo.matches.length, Constants.maxMatchCount);
-        console.log('Unwanted ids:', filterIds);
 
         /**
          * Check in each learn language the possible matchs, and save this users in a list.
@@ -101,7 +99,7 @@ const getPossibleMatchUsers = async (req, res, next) =>
     } 
     catch (error) 
     {
-        console.log('Error:', error);
+        Logger.log('match', `Error inside getPossibleMatchUsers ${error}`, 2);
 
         return res.status(500).json({
             'code': 'SERVER_ERROR',
@@ -126,6 +124,8 @@ const getUserRequestedMatchsRequest = async (req, res, next) =>
     } 
     catch (error) 
     {
+        Logger.log('match', `Error inside getUserRequestedMatchsRequest ${error}`, 2);
+
         return res.status(500).json({
             'code': 'SERVER_ERROR',
             'description': 'something went wrong, Please try again'
@@ -150,7 +150,8 @@ const getUserReceiptMatchsRequests = async (req, res, next) =>
     } 
     catch (error) 
     {
-        console.log('Error in getUserReceiptMatchsRequests', error);
+        Logger.log('match', `Error inside getUserReceiptMatchsRequests ${error}`, 2);
+
         return res.status(500).json({});
     }
 }
@@ -206,7 +207,8 @@ const sendNewMatchRequest = async (req, res, next) =>
     } 
     catch (error) 
     {
-        console.log('Error in sendNewMatchRequest', error);
+        Logger.log('match', `Error inside sendNewMatchRequest ${error}`, 2);
+
         return res.status(500);
     }
 }
@@ -232,8 +234,6 @@ const acceptNewMatchRequest = async (req, res, next) =>
         }
 
         let updateMatch = await Match.findByIdAndUpdate(matchId, {$set: temp});
-
-        console.log('Matching user...');
 
         if (updateMatch) 
         {
@@ -266,7 +266,8 @@ const acceptNewMatchRequest = async (req, res, next) =>
     } 
     catch (error) 
     {
-        console.log('Error in accpetNewMatchRequest', error);
+        Logger.log('match', `Error inside acceptNewMatchRequest ${error}`, 2);
+
         return res.status(500).json({});
     }
 }
@@ -286,6 +287,8 @@ const denyMatchRequest = async (req, res, next) =>
     } 
     catch (error) 
     {
+        Logger.log('match', `Error inside denyMatchRequest ${error}`, 2);
+
         return res.status(500).json({});
     }
 }
@@ -309,7 +312,8 @@ const getUserCurrentActiveMatches = async (req, res, next) =>
     } 
     catch (error) 
     {
-        console.log('Error in getUserCurrentActiveMatches', error);
+        Logger.log('match', `Error inside getUserCurrentActiveMatches ${error}`, 2);
+
         return res.status(500).json({});
     }
 }
@@ -336,7 +340,8 @@ const removeExistingMatch = async(req, res, next) =>
     }
     catch (error)
     {
-        console.log(error);
+        Logger.log('match', `Error inside removeExistingMatch ${error}`, 2);
+
         return res.status(500).json({});
     }
 }
@@ -345,7 +350,7 @@ const removeMatchHelper = async(match) =>
 {
     try
     {
-        console.log('[MATCH] Removing match:', match._id);
+        Logger.log('match', `Removing match: ${match._id}`);
 
         let p0 = User.findById(match.requesterUser);
         let p1 = User.findById(match.recipientUser);
@@ -354,7 +359,7 @@ const removeMatchHelper = async(match) =>
         const user0 = results[0];
         const user1 = results[1];
 
-        console.log('[MATCH] Removing match between:', user0.email, user1.email);
+        //console.log('[MATCH] Removing match between:', user0.email, user1.email);
 
         p0 = Room.findOne({user0:user0.email, user1:user1.email});
         p1 = Room.findOne({user0:user1.email, user1:user0.email});
@@ -363,7 +368,7 @@ const removeMatchHelper = async(match) =>
         const room = !results[0] ? results[1] : results[0];
         const roomId = room ? room._id : undefined;
 
-        console.log('[MATCH] user rooms', user0.matches, match._id, match._id !== user0.matches[0]);
+        //console.log('[MATCH] user rooms', user0.matches, match._id, match._id !== user0.matches[0]);
 
         const user0UpdatedRooms = room ? user0.rooms.filter(element => element.toString() !== roomId.toString()) : user0.rooms;
         const user1UpdatedRooms = room ? user1.rooms.filter(element => element.toString() !== roomId.toString()) : user1.rooms;
@@ -371,7 +376,7 @@ const removeMatchHelper = async(match) =>
         const user0UpdatedMatches = user0.matches.filter(element => element.toString() !== match._id.toString());
         const user1UpdatedMatches = user1.matches.filter(element => element.toString() !== match._id.toString());
 
-        console.log('[MATCH] user rooms', user0UpdatedMatches, match._id);
+        //console.log('[MATCH] user rooms', user0UpdatedMatches, match._id);
 
         User.findByIdAndUpdate(
             user0._id,
@@ -389,7 +394,7 @@ const removeMatchHelper = async(match) =>
     }
     catch (error)
     {
-        console.log('[MATCH] Error in removeMatchHelper', error);
+        Logger.log('match', `Error inside removeMatchHelper ${error}`, 2);
     }
         
 }

@@ -12,6 +12,7 @@ const maintenanceFunctions = require('../maintenanceFunctions')
 var favicon = require('serve-favicon');
 
 const loginStrategy = require('./loginStrategy')();
+const logger = require('../log/logger');
 
 const constants = require('./constants')
 
@@ -46,7 +47,10 @@ module.exports = function () {
 
     var appSession;
 
-    create = (config, db) => {
+    create = (config, db) => 
+    {
+        logger.init();
+
         let routes = require('../routes');
 
         // Set the server variables
