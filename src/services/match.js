@@ -10,7 +10,7 @@ const emailServer = require('../emailServer');
 // Chat database structures
 const Room = require('../models/room.js');
 const Constants = require('../configs/constants.js');
-const Logger = require('../log/logger');
+const Logger = require('../logger');
 
 const getPossibleMatchUsers = async (req, res, next) => 
 {
@@ -29,7 +29,7 @@ const getPossibleMatchUsers = async (req, res, next) =>
         let filterIds = [userID];
         let languagesList = [];
 
-        Logger.log('match', `User ID for getPossibleMatchUsers request ${userID}`);
+        Logger.write('match', `User ID for getPossibleMatchUsers request ${userID}`);
 
         if (userInfo.matches.length > Constants.maxMatchCount)
         {
@@ -99,7 +99,7 @@ const getPossibleMatchUsers = async (req, res, next) =>
     } 
     catch (error) 
     {
-        Logger.log('match', `Error inside getPossibleMatchUsers ${error}`, 2);
+        Logger.write('match', `Error inside getPossibleMatchUsers ${error}`, 2);
 
         return res.status(500).json({
             'code': 'SERVER_ERROR',
@@ -124,7 +124,7 @@ const getUserRequestedMatchsRequest = async (req, res, next) =>
     } 
     catch (error) 
     {
-        Logger.log('match', `Error inside getUserRequestedMatchsRequest ${error}`, 2);
+        Logger.write('match', `Error inside getUserRequestedMatchsRequest ${error}`, 2);
 
         return res.status(500).json({
             'code': 'SERVER_ERROR',
@@ -150,7 +150,7 @@ const getUserReceiptMatchsRequests = async (req, res, next) =>
     } 
     catch (error) 
     {
-        Logger.log('match', `Error inside getUserReceiptMatchsRequests ${error}`, 2);
+        Logger.write('match', `Error inside getUserReceiptMatchsRequests ${error}`, 2);
 
         return res.status(500).json({});
     }
@@ -207,7 +207,7 @@ const sendNewMatchRequest = async (req, res, next) =>
     } 
     catch (error) 
     {
-        Logger.log('match', `Error inside sendNewMatchRequest ${error}`, 2);
+        Logger.write('match', `Error inside sendNewMatchRequest ${error}`, 2);
 
         return res.status(500);
     }
@@ -266,7 +266,7 @@ const acceptNewMatchRequest = async (req, res, next) =>
     } 
     catch (error) 
     {
-        Logger.log('match', `Error inside acceptNewMatchRequest ${error}`, 2);
+        Logger.write('match', `Error inside acceptNewMatchRequest ${error}`, 2);
 
         return res.status(500).json({});
     }
@@ -287,7 +287,7 @@ const denyMatchRequest = async (req, res, next) =>
     } 
     catch (error) 
     {
-        Logger.log('match', `Error inside denyMatchRequest ${error}`, 2);
+        Logger.write('match', `Error inside denyMatchRequest ${error}`, 2);
 
         return res.status(500).json({});
     }
@@ -312,7 +312,7 @@ const getUserCurrentActiveMatches = async (req, res, next) =>
     } 
     catch (error) 
     {
-        Logger.log('match', `Error inside getUserCurrentActiveMatches ${error}`, 2);
+        Logger.write('match', `Error inside getUserCurrentActiveMatches ${error}`, 2);
 
         return res.status(500).json({});
     }
@@ -340,7 +340,7 @@ const removeExistingMatch = async(req, res, next) =>
     }
     catch (error)
     {
-        Logger.log('match', `Error inside removeExistingMatch ${error}`, 2);
+        Logger.write('match', `Error inside removeExistingMatch ${error}`, 2);
 
         return res.status(500).json({});
     }
@@ -350,7 +350,7 @@ const removeMatchHelper = async(match) =>
 {
     try
     {
-        Logger.log('match', `Removing match: ${match._id}`);
+        Logger.write('match', `Removing match: ${match._id}`);
 
         let p0 = User.findById(match.requesterUser);
         let p1 = User.findById(match.recipientUser);
@@ -394,7 +394,7 @@ const removeMatchHelper = async(match) =>
     }
     catch (error)
     {
-        Logger.log('match', `Error inside removeMatchHelper ${error}`, 2);
+        Logger.write('match', `Error inside removeMatchHelper ${error}`, 2);
     }
         
 }

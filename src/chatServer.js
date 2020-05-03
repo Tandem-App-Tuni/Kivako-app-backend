@@ -3,7 +3,7 @@ const fs = require('fs');
 const User = require('./models/user');
 const Room = require('./models/room.js');
 
-const Logger = require('./log/logger');
+const Logger = require('./logger');
 
 const activeUsers = new Map();
 const loggedInUsers = new Map();

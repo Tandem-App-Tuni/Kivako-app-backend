@@ -12,7 +12,7 @@ const maintenanceFunctions = require('../maintenanceFunctions')
 var favicon = require('serve-favicon');
 
 const loginStrategy = require('./loginStrategy')();
-const logger = require('../log/logger');
+const logger = require('../logger');
 
 const constants = require('./constants')
 

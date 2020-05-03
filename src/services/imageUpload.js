@@ -5,7 +5,7 @@ const sharp = require('sharp');
 sharp.cache(false);
 
 const storageFolder = constants.uploadsFolder;
-const Logger = require('../log/logger');
+const Logger = require('../logger');
 
 /**
  * The functions here take care of the
@@ -29,7 +29,7 @@ const uploadAvatar = async function(req, res, next)
     }
     catch (error)
     {
-        Logger.log('user', `Error while uploading avatar: ${error}`, 2);
+        Logger.write('user', `Error while uploading avatar: ${error}`, 2);
     }
 };
 
@@ -55,7 +55,7 @@ const getAvatar = async function(req, res, next)
     }
     catch (error)
     {
-        Logger.log('user', `Error while fetching avatar: ${error}`, 2);
+        Logger.write('user', `Error while fetching avatar: ${error}`, 2);
     }
 };
 

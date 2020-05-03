@@ -6,7 +6,7 @@ var saml = require('passport-saml');
 var passwordHash = require('password-hash');
 const User = require('../models/user');
 
-const Logger = require('../log/logger');
+const Logger = require('../logger');
 
 
 module.exports = function () 

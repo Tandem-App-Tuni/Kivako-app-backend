@@ -54,7 +54,7 @@ function fileSizeCheck()
             if ((fileSize/1000000) >= FILE_SIZE_LIMIT_MEGABYTES)
             {
                 let timeStamp = new Date().toISOString().replace(/\..+/, '').replace(/T([0-9]+:)+[0-9]*/, '');
-                const newFileName = path.join(__dirname, k + '_' + timeStamp + '_' + String(module[1] + 1));
+                const newFileName = path.join(__dirname, 'log' ,k + '_' + timeStamp + '_' + String(module[1] + 1));
 
                 fs.appendFileSync(newFileName, '');
 
@@ -90,9 +90,9 @@ function setWriterModuls()
 {
     try
     {
-        console.log('[LOGGER] Init logger in directory', __dirname);
+        console.log(`[LOGGER] Init logger in directory ${__dirname}/log`);
 
-        let files = fs.readdirSync(__dirname);
+        let files = fs.readdirSync(path.join(__dirname,'log'));
         
         for (let i = 0; i < loggingModules.length; i++)
         {
@@ -105,10 +105,10 @@ function setWriterModuls()
                 let timeStamp = new Date().toISOString().replace(/\..+/, '').replace(/T([0-9]+:)+[0-9]*/, '');
                 const newFileName = mod + '_' + timeStamp + '_' + '0';
 
-                fs.appendFileSync(path.join(__dirname, newFileName), '');
-                writeModules[mod] = [newFileName, 0, fs.createWriteStream(path.join(__dirname, newFileName), {flags: 'a', encoding: null, mode:0666})];
+                fs.appendFileSync(path.join(__dirname,'log', newFileName), '');
+                writeModules[mod] = [newFileName, 0, fs.createWriteStream(path.join(__dirname, 'log' ,newFileName), {flags: 'a', encoding: null, mode:0666})];
             }
-            else writeModules[mod] = [file, mx, fs.createWriteStream(path.join(__dirname, file), {flags: 'a', encoding: null, mode:0666})];
+            else writeModules[mod] = [file, mx, fs.createWriteStream(path.join(__dirname,'log',file), {flags: 'a', encoding: null, mode:0666})];
         }
 
         console.log('[LOGGER] Logger moduls set...');
