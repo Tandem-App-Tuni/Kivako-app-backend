@@ -15,7 +15,7 @@ const constants = require('../configs/constants');
 const emailServer = require('../emailServer');
 const crypto = require('crypto');
 
-const Logger = require('../log/logger');
+const Logger = require('../logger');
 
 const checkIfUserAlreadyRegistered = async (req, res, next) => {
 
@@ -28,7 +28,7 @@ const checkIfUserAlreadyRegistered = async (req, res, next) => {
             });
 
             if (isEmailExists != null) {
-                Logger.log('user', `User ${req.user.email} is already registered.`);
+                Logger.write('user', `User ${req.user.email} is already registered.`);
                 
                 return res.status(200).json({
                     'isRegistered': true,
@@ -36,13 +36,13 @@ const checkIfUserAlreadyRegistered = async (req, res, next) => {
                     'isAdmin': isEmailExists.isAdmin
                 });
             } else {
-                Logger.log('user', `User ${req.user.email} is not registered.`);
+                Logger.write('user', `User ${req.user.email} is not registered.`);
                 return res.status(200).json({
                     'isRegistered': false
                 });
             }
         } else {
-            Logger.log('user', `User ${req.user.email} is not registered.`);
+            Logger.write('user', `User ${req.user.email} is not registered.`);
             return res.status(201).json({
                 'isRegistered': false
             });
@@ -52,7 +52,7 @@ const checkIfUserAlreadyRegistered = async (req, res, next) => {
     } 
     catch (error) {
         //console.log("[ERROR]Error during check if user " + req.user.email + " is already registered!");
-        Logger.log('user', `Error inside checkIfUserAlreadyRegistered ${error}`, 2);
+        Logger.write('user', `Error inside checkIfUserAlreadyRegistered ${error}`, 2);
 
         return res.status(404).json({
             'code': 'SERVER_ERROR',
@@ -84,7 +84,7 @@ const getUserInformation = async (req, res, next) => {
 
     } catch (error) {
 
-        Logger.log('user', `Error inside getUserInformation ${error}`, 2);
+        Logger.write('user', `Error inside getUserInformation ${error}`, 2);
 
         return res.status(500).json({
             'code': 'SERVER_ERROR',
@@ -108,7 +108,7 @@ const isAdmin = async(req, res, next) =>
     }
     catch(error)
     {
-        Logger.log('user', `Error inside isAdmin ${error}`, 2);
+        Logger.write('user', `Error inside isAdmin ${error}`, 2);
 
         res.status(200).json({isAdmin:false});
     }
@@ -153,7 +153,7 @@ const createUser = async (req, res, next) =>
          */
         if (!validEmail(email))
         {
-            Logger.log('user', `Invalid email address ${email}`, 1);
+            Logger.write('user', `Invalid email address ${email}`, 1);
 
             return res.status(422).json({
                 'code': 'INVALID_EMAIL_ADDRESS',
@@ -176,7 +176,7 @@ const createUser = async (req, res, next) =>
 
         if (!domainFlag)
         {
-            Logger.log('user', `Invalid domain ${domainFlag}`, 1);
+            Logger.write('user', `Invalid domain ${domainFlag}`, 1);
 
             return res.status(422).json({
                 'code': 'INVALID_EMAIL_DOMAIN',
@@ -248,7 +248,7 @@ const createUser = async (req, res, next) =>
         }
     } catch (error) 
     {
-        Logger.log('user', `Error inside createUser ${error}`, 2);
+        Logger.write('user', `Error inside createUser ${error}`, 2);
 
         return res.status(500).json({
             'code': 'SERVER_ERROR',
@@ -275,7 +275,7 @@ const resetPasswordRequestCheck = async (req, res, next) =>
                 if (err) 
                 {
                     console.log('Error reseting password', err);
-                    Logger.log('user', `Error reseting password ${err}`, 2);
+                    Logger.write('user', `Error reseting password ${err}`, 2);
 
                     res.status(500).json({});
                 }
@@ -283,7 +283,7 @@ const resetPasswordRequestCheck = async (req, res, next) =>
                 {
                     ResetPassword.findOneAndRemove({email:email}, (err) =>
                     {
-                        if (err) Logger.log('user', `Error removing reset password form ${err}`, 2);
+                        if (err) Logger.write('user', `Error removing reset password form ${err}`, 2);
                     });
 
                     res.status(200).json({});
@@ -294,7 +294,7 @@ const resetPasswordRequestCheck = async (req, res, next) =>
     }
     catch (err)
     {
-        Logger.log('user', `Error inside resetPasswordRequestCheck ${err}`, 2);
+        Logger.write('user', `Error inside resetPasswordRequestCheck ${err}`, 2);
 
         return res.status(500).json({});
     }
@@ -320,14 +320,14 @@ const resetPasswordRequest = async (req, res, next) =>
                 {
                     await ResetPassword.findOneAndUpdate({id:email}, {timestamp: new Date(), token:token}, err => 
                     {
-                        if (err) Logger.log('user', `Error updating password reset token ${err}`, 2);
+                        if (err) Logger.write('user', `Error updating password reset token ${err}`, 2);
                     });
                 }
                 else
                 {
                     await ResetPassword.create({id:email,token:token,timestamp:new Date()}, err => 
                     {
-                        if (err) Logger.log('user', `Error creating password reset token ${err}`, 2);
+                        if (err) Logger.write('user', `Error creating password reset token ${err}`, 2);
                     });
                 }
 
@@ -340,7 +340,7 @@ const resetPasswordRequest = async (req, res, next) =>
     }
     catch (error)
     {
-        Logger.log('user', `Error inside resetPasswordRequest ${error}`, 2);
+        Logger.write('user', `Error inside resetPasswordRequest ${error}`, 2);
 
         return res.status(500).json({message:'Error'});
     }
@@ -353,13 +353,13 @@ const activateUser = async (req, res, next) =>
         let activationKey = req.path.split('/');
         activationKey = activationKey[activationKey.length - 1];
         
-        Logger.log('user', `Activation request for key: ${activationKey}`);
+        Logger.write('user', `Activation request for key: ${activationKey}`);
 
         let user = await User.findOne({activationKey: activationKey});
 
         if (user)
         {
-            Logger.log('user', `User is activated ${user.isActivated}`);
+            Logger.write('user', `User is activated ${user.isActivated}`);
 
             if (user.isActivated) 
             {
@@ -369,19 +369,19 @@ const activateUser = async (req, res, next) =>
 
             User.findByIdAndUpdate(user._id, {isActivated: true}, (err) => 
             {
-                if (err) Logger.log('user', `Error activating user ${error}`, 2);
+                if (err) Logger.write('user', `Error activating user ${error}`, 2);
             });
             res.redirect(constants.frontEndURL + '/local-login');
         }
         else
         {
-            Logger.log('user', `User not found...invalid activaiton key...key: ${activationKey}`, 1);
+            Logger.write('user', `User not found...invalid activaiton key...key: ${activationKey}`, 1);
             res.redirect(constants.frontEndURL + '/local-login');
         }
     }
     catch(error)
     {
-        Logger.log('user', `Error inside activateUser ${error}`, 2);
+        Logger.write('user', `Error inside activateUser ${error}`, 2);
 
         res.status(500).json(
         {
@@ -415,7 +415,7 @@ const reactivateUser = async(req, res, next) =>
                 {
                     if (error)
                     {
-                        Logger.log('user', `Error updating user information while reactivating ${error}`, 2);
+                        Logger.write('user', `Error updating user information while reactivating ${error}`, 2);
                         res.status(404).json({message: 'Error while activating.'});
                     }
                     else res.status(200).json({message: 'Activation link resent.'});
@@ -425,7 +425,7 @@ const reactivateUser = async(req, res, next) =>
     }
     catch(error)
     {
-        Logger.log('user', `Error occured when trying to resend an activaion link: ${error}`, 2);
+        Logger.write('user', `Error occured when trying to resend an activaion link: ${error}`, 2);
         res.status(404).json({message: 'Error while activating.'});
     }
 }
@@ -490,7 +490,7 @@ const updateUser = async (req, res, next) =>
     } 
     catch (error) 
     {
-        Logger.log('user', `Error inside updateUser ${error}`, 2);
+        Logger.write('user', `Error inside updateUser ${error}`, 2);
 
         return res.status(500).json({
             'code': 'SERVER_ERROR',
@@ -512,7 +512,7 @@ const deleteUser = async (req, res, next) =>
         helperDeleteUser(req.user.email)
         .then(result => 
         {
-            Logger.log('user', `Deletion result: ${result}`);
+            Logger.write('user', `Deletion result: ${result}`);
 
             if (result === 0)
             {
@@ -536,7 +536,7 @@ const deleteUser = async (req, res, next) =>
     }
     catch(error)
     {
-        Logger.log('user', `Error inside deleteUser ${error}`, 2);
+        Logger.write('user', `Error inside deleteUser ${error}`, 2);
 
         return res.status(500).json({
             'code': 'SERVER_ERROR',
@@ -557,7 +557,7 @@ const adminDeleteUser = async (req, res, next) =>
             let userEmail = req.path.split('/');
             userEmail = userEmail[userEmail.length - 1];
 
-            Logger.log('user', `Removing user: ${userEmail}`);
+            Logger.write('user', `Removing user: ${userEmail}`);
 
             helperDeleteUser(userEmail)
             .then(result => 
@@ -579,7 +579,7 @@ const adminDeleteUser = async (req, res, next) =>
     }
     catch(error)
     {
-        Logger.log('user', `Error inside adminDeleteUser ${error}`, 2);
+        Logger.write('user', `Error inside adminDeleteUser ${error}`, 2);
 
         return res.status(500).json({
             'code': 'SERVER_ERROR',
@@ -592,7 +592,7 @@ const helperDeleteUser = async (email) =>
 {
     try 
     {
-        Logger.log('user', `Removing profile ${email}`);
+        Logger.write('user', `Removing profile ${email}`);
 
         let user = await User.findOne({'email': email});
         let matches = await Match.find({'_id': {$in: user.matches}});
@@ -614,25 +614,25 @@ const helperDeleteUser = async (email) =>
 
             await User.findByIdAndUpdate(secondUser._id, {rooms: postRooms, matches: postMatches}, (err) => 
             {
-                if (err) Logger.log('user', `Error updating user ${secondUser.email} when removing user ${email}: ${err}`, 2);
+                if (err) Logger.write('user', `Error updating user ${secondUser.email} when removing user ${email}: ${err}`, 2);
             });
 
             await Match.findByIdAndRemove(match._id, (err) => 
             {
-                if (err) Logger.log('user', `Error removing match between users ${email} ${secondUser.email}: ${err}`, 2);
+                if (err) Logger.write('user', `Error removing match between users ${email} ${secondUser.email}: ${err}`, 2);
             });
 
             if (rooms[i])
                 await Room.findByIdAndRemove(rooms[i]._id, (err) => 
                 {
-                    if (err) Logger.log('user', `Error removing room ${rooms[i].roomId}: ${err}`, 2);
+                    if (err) Logger.write('user', `Error removing room ${rooms[i].roomId}: ${err}`, 2);
                 });
         }
 
         let avatar = path.join(constants.uploadsFolder, email);
         if (fs.existsSync(avatar)) fs.unlink(avatar, (err) => 
         {
-            if (err) Logger.log('user', `Error removing avatar ${avatar}: ${err}`, 2);
+            if (err) Logger.write('user', `Error removing avatar ${avatar}: ${err}`, 2);
         });
 
         let flag = 0;
@@ -641,7 +641,7 @@ const helperDeleteUser = async (email) =>
         {
             if (err)
             {
-                Logger.log('user', `Error removing user ${user.email}: ${err}`, 2);
+                Logger.write('user', `Error removing user ${user.email}: ${err}`, 2);
 
                 flag = 1;
             }
@@ -651,7 +651,7 @@ const helperDeleteUser = async (email) =>
     } 
     catch (error) 
     {
-        Logger.log('user', `Error inside helperDeleteUser ${error}`, 2);
+        Logger.write('user', `Error inside helperDeleteUser ${error}`, 2);
 
         return 2;
     }
@@ -698,7 +698,7 @@ const loadUserInfoMenuDrawer = async (req, res, next) => {
         });
 
     } catch (error) {
-        Logger.log('user', `Error inside loadUserInfoMenuDrawer ${error}`, 2);
+        Logger.write('user', `Error inside loadUserInfoMenuDrawer ${error}`, 2);
 
         return res.status(500).json({
             'code': 'SERVER_ERROR',
@@ -721,7 +721,7 @@ const setMatchingVisibility = async (req, res, next) =>
     }
     catch(error)
     {
-        Logger.log('user', `Error inside setMatchingVisibility ${error}`, 2);
+        Logger.write('user', `Error inside setMatchingVisibility ${error}`, 2);
         return res.status(500).json({});
     }
 }

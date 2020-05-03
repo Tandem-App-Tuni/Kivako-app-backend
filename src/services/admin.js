@@ -5,7 +5,7 @@ const express = require('express');
 const User = require('../models/user');
 const Match = require('../models/match');
 var passwordHash = require('password-hash');
-const Logger = require('../log/logger');
+const Logger = require('../logger');
 
 const getLanguageStatitics = async (req, res, next) => 
 {

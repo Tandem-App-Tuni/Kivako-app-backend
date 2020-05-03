@@ -17,6 +17,9 @@ package-lock.json
 #upload
 /src/configs/uploads
 
+#log
+/src/log
+
 # misc
 .DS_Store
 .env.local
