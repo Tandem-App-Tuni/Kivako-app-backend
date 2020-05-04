@@ -255,6 +255,11 @@ function checkLoginActive()
     {
         Logger.write('chat', `Checking map contents a:${activeUsers.size} l:${loggedInUsers.size}`);
 
+        if (activeUsers.size > loggedInUsers.size)
+        {
+            Logger.write('chat', 'More active users than logged in users!', 2);
+        }
+
         let logToRemove = [];
         let activeToRemove = [];
 
