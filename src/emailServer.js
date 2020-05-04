@@ -75,6 +75,15 @@ const sendNewRequestNotificationEmail = (user, receiver) =>
     sendEmail(to, subject, html);
 }
 
+const sendNewMessageNotificationEmail = (user, receiver, message) => 
+{
+  console.log('[EMAIL] Sending new message notification email to ${receiver.email}');
+  let to = receiver.email;
+  let subject = `Hey, you have a new message from ${user.firstName} ${user.lastName}!`;
+  let html = `Hey, ${user.firstName} is saying: "${message}".\nLog into Unitandem to reply!` ;  
+  sendEmail(to, subject, html);
+}
+
 const monthNotification = (user) =>
 {
   console.log('[EMAIL] Sending one month inactivity notification!');
@@ -102,5 +111,6 @@ module.exports ={
     sendPasswordResetEmail:sendPasswordResetEmail,
     monthNotification:monthNotification,
     yearNotification:yearNotification,
-    sendNewRequestNotificationEmail
+    sendNewRequestNotificationEmail,
+    sendNewMessageNotificationEmail:sendNewMessageNotificationEmail
 };
