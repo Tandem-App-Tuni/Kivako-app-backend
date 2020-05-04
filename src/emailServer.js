@@ -78,7 +78,7 @@ const sendNewRequestNotificationEmail = (user, receiver) =>
 const sendNewMessageNotificationEmail = (user, receiver, message) => 
 {
   console.log('[EMAIL] Sending new message notification email to ${receiver.email}');
-  let to = receiver.email;
+  let to = receiver;
   let subject = `Hey, you have a new message from ${user.firstName} ${user.lastName}!`;
   let html = `Hey, ${user.firstName} is saying: "${message}".\nLog into Unitandem to reply!` ;  
   sendEmail(to, subject, html);

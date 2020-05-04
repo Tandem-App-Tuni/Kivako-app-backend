@@ -231,9 +231,7 @@ var start = function (server, session)
                     }
                     else
                     {
-                        let user1Data = await User.findOne({email: user1});
-
-                        Email.sendNewMessageNotificationEmail(await User.findOne({email: user}), user1Data, message.text);
+                        Email.sendNewMessageNotificationEmail(await User.findOne({email: user}), user1, message.text);
                     }
                 }
             }
