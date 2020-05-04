@@ -4,6 +4,8 @@ const User = require('./models/user');
 const Room = require('./models/room.js');
 
 const Logger = require('./logger');
+const Email = require('./emailServer.js');
+const schedule = require('node-schedule');
 
 const activeUsers = new Map();
 const loggedInUsers = new Map();
@@ -197,7 +199,6 @@ var start = function (server, session)
             }
             catch (error)
             {
-                console.log('[CHAT] Error in checkNotifications', error);
                 Logger.write('chat', `Error in checkNotifications ${error}`);
             }
         });
@@ -211,8 +212,7 @@ var start = function (server, session)
                 let message = data.message;
                 let roomId = data.roomId;
 
-                console.log('[CHAT] Message recieved from user', user, 'from room', roomId, '->', message);
-                Logger.write('chat', `Disconnecting unauthorised client connection!`);
+                Logger.write('chat', `Message recieved from user ${user} from room ${roomId}.`);
 
                 socket.to(roomId).emit('message', message);
 
@@ -223,28 +223,75 @@ var start = function (server, session)
                 {
                     await User.findOneAndUpdate({email:user1}, {chatNotification: true});
 
-                    console.log('[CHAT] User logged in', loggedInUsers.has(user1));
-                    Logger.write('chat', `Disconnecting unauthorised client connection!`);
+                    Logger.write('chat', `[CHAT] User logged in ${loggedInUsers.has(user1)}`);
 
                     if (loggedInUsers.has(user1)) 
                     {
-                        console.log('[CHAT] Sending notificaiton!');
-                        Logger.write('chat', `Disconnecting unauthorised client connection!`);
                         loggedInUsers.get(user1).emit('notification', {});
+                    }
+                    else
+                    {
+                        Email.sendNewMessageNotificationEmail(await User.findOne({email: user}), user1, message.text);
                     }
                 }
             }
             catch (error)
             {
-                console.log('[CHAT ERROR] Error in message', error);
-                Logger.write('chat', `Disconnecting unauthorised client connection!`);
+                Logger.write('chat', `[CHAT ERROR] Error in message ${error}`, 2);
             }
         });
     });
 
-    console.log('[CHAT] ChatServer online!');
-    Logger.write('chat', `Disconnecting unauthorised client connection!`);
+    schedule.scheduleJob('10 * * * *', () => checkLoginActive());
+
+    Logger.write('chat', `[CHAT] ChatServer online!`);
 };
+
+function checkLoginActive()
+{
+    try
+    {
+        Logger.write('chat', `Checking map contents a:${activeUsers.size} l:${loggedInUsers.size}`);
+
+        if (activeUsers.size > loggedInUsers.size)
+        {
+            Logger.write('chat', 'More active users than logged in users!', 2);
+        }
+
+        let logToRemove = [];
+        let activeToRemove = [];
+
+        for (let email of loggedInUsers.keys())
+        {
+            const socket = loggedInUsers.get(email);
+            if (!socket.connected)
+            {
+                Logger.write('chat', `User ${email} recorded in login but not connected...removing.`);
+
+                logToRemove.push(email);
+            }
+        }
+
+        for (let email of activeUsers.keys())
+        {
+            const socket = activeUsers.get(email);
+            if (!socket.connected)
+            {
+                Logger.write('chat', `User ${email} recorded in active but not connected...removing.`);
+
+                activeToRemove.push(email);
+            }
+        }
+
+        Logger.write('chat', `Removing ${logToRemove.length} logged in users and ${activeToRemove.length} active users.`);
+        for (email in logToRemove) loggedInUsers.delete(email);
+        for (email in activeToRemove) activeToRemove.delete(email);
+    }
+    catch(error)
+    {
+        Logger.write('chat', `Error inside checkLoginActive: ${error}`, 2);
+    }
+}
 
 
 module.exports = {
