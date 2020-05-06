@@ -31,10 +31,7 @@ const getPossibleMatchUsers = async (req, res, next) =>
 
         Logger.write('match', `User ID for getPossibleMatchUsers request ${userID}`);
 
-        if (userInfo.matches.length > Constants.maxMatchCount)
-        {
-            return res.status(400).json({});
-        }
+        if (userInfo.matches.length > Constants.maxMatchCount) return res.status(400).json({});
 
         for (i = 0; i < userInfo.matches.length; i++)
         {
@@ -216,7 +213,7 @@ const acceptNewMatchRequest = async (req, res, next) =>
     {
         const user = await Helper.getUserIdFromAuthenticatedRequest(req);
 
-        if (user.matches.length >= Constants.maxMatchCount) return res.status(200).json({});
+        if (user.matches.length > Constants.maxMatchCount) return res.status(400).json({});
 
         const matchId = req.params.matchId;
         const matchExists = await Match.findById(matchId);
