@@ -31,13 +31,7 @@ const getPossibleMatchUsers = async (req, res, next) =>
 
         Logger.write('match', `User ID for getPossibleMatchUsers request ${userID}`);
 
-        if (userInfo.matches.length > Constants.maxMatchCount)
-        {
-            return res.status(404).json({
-                'code': 'BAD_REQUEST_ERROR',
-                'description': 'You have exceeded the maximal match count limit.'
-            });
-        }
+        if (userInfo.matches.length > Constants.maxMatchCount) return res.status(400).json({});
 
         for (i = 0; i < userInfo.matches.length; i++)
         {
@@ -163,7 +157,7 @@ const sendNewMatchRequest = async (req, res, next) =>
         const requesterUser = await Helper.getUserIdFromAuthenticatedRequest(req);
         const requesterUserID = requesterUser._id;
 
-        if (requesterUser.matches.length >= Constants.maxMatchCount) return res.status(201).json({'requested': false,'status': 'fail'});
+        if (requesterUser.matches.length > Constants.maxMatchCount) return res.status(400).json({});
         
         const recipientUserID = mongoose.Types.ObjectId(req.body.recipientID);
         const receiveRequestUser = await User.findById(recipientUserID);
@@ -219,7 +213,7 @@ const acceptNewMatchRequest = async (req, res, next) =>
     {
         const user = await Helper.getUserIdFromAuthenticatedRequest(req);
 
-        if (user.matches.length >= Constants.maxMatchCount) return res.status(200).json({});
+        if (user.matches.length > Constants.maxMatchCount) return res.status(400).json({});
 
         const matchId = req.params.matchId;
         const matchExists = await Match.findById(matchId);
