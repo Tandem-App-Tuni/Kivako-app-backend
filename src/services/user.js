@@ -226,7 +226,7 @@ const createUser = async (req, res, next) =>
             languagesToLearn: languagesToLearn,
             userIsActivie: userIsActivie,
             isAdmin: false,
-            excludeFromMatching: false,
+            excludeFromMatching: true,
             password: hashedPassword,
         };
 
@@ -367,7 +367,7 @@ const activateUser = async (req, res, next) =>
                 return;
             }
 
-            User.findByIdAndUpdate(user._id, {isActivated: true}, (err) => 
+            User.findByIdAndUpdate(user._id, {isActivated: true, excludeFromMatching: false}, (err) => 
             {
                 if (err) Logger.write('user', `Error activating user ${error}`, 2);
             });
