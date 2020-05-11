@@ -26,8 +26,6 @@ const getLanguageStatitics = async (req, res, next) =>
                 "status": 2
             }, );
 
-            //console.log(languages[i] + " / Learn: " + languagesToTeach + " / Teach: " + languagesToLearn + " / Matches: " + matchesInLanguage)
-
             let format = {
                 language: languages[i],
                 numberWantToLearn: languagesToLearn,

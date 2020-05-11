@@ -2,6 +2,13 @@ const fs = require('fs');
 const path = require('path');
 const schedule = require('node-schedule');
 
+/**
+ * A simple logging library.
+ * Implements 3 levels of information severity.
+ * Additional logging modules can be added just by appending an entry to the
+ * loggingModules array and restarting the application.
+ */
+
 const FILE_SIZE_LIMIT_MEGABYTES = 1; 
 const loggingModules = 
 [
