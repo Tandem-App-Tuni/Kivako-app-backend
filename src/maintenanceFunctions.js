@@ -3,6 +3,13 @@ const Room = require('./models/room');
 const Match = require('./models/match');
 const Constants = require('./configs/constants');
 
+/**
+ * Simple maintenance checks of the database
+ * carried out on a daily basis. Checking for
+ * room validity (users of rooms should exist,...), match validity
+ * (users inside matches should exist,...) and user validity (users with valida matches, rooms).
+ */
+
 async function databaseCheck()
 {   
     try

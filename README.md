@@ -56,3 +56,7 @@ Real server password is store in Microsoft Team in channel: **Documents**,  in f
  - models: Related to the abstraction of the objects of the system. The model is writed using Mongoose as base.
  - routes: Handle the initial api call, and call the necessary controllers
  - server.js: Is the file related to run the server 
+
+
+### License
+This project is licensed under the terms of the MIT license

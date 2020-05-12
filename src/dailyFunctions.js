@@ -4,7 +4,16 @@ const ResetPassword = require('./models/resetPassword');
 const Email = require('./emailServer')
 const UserService = require('./services/user');
 
-// Make a set of functions to run and export the module to the server
+/**
+ * Daily function checking and removing inactive users.
+ * Always make sure to first check for one year inactive users and then
+ * one month inactive users.
+ * The function parameters are unecessary and should be removed in the future.
+ * 
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
 const runDailyFunctions = async (req, res, next) => 
 {
     try {

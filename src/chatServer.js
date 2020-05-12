@@ -7,9 +7,13 @@ const Logger = require('./logger');
 const Email = require('./emailServer.js');
 const schedule = require('node-schedule');
 
+/**
+ * activeUsers are the user currently using the chat system.
+ * loggedInUsers are the users logged into the application but not necessarily inside the chat.
+ * activeUsers are a subset of loggedInUsers.
+ */
 const activeUsers = new Map();
 const loggedInUsers = new Map();
-
 
 /**
  * ChatServer creates a socket.io session, managing user ids
@@ -254,6 +258,10 @@ var start = function (server, session)
     Logger.write('chat', `[CHAT] ChatServer online!`);
 };
 
+/**
+ * Check if there are some inactive sockets inside
+ * activeUsers and loggedInUsers and remove those that are.
+ */
 function checkLoginActive()
 {
     try
