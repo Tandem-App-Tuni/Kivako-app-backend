@@ -7,6 +7,7 @@ const Room = require('../models/room');
 const ResetPassword = require('../models/resetPassword');
 
 var passwordHash = require('password-hash');
+
 const Helper = require('./helper')
 const EmailDomains = require('../emailDomains');
 const fs = require('fs');
@@ -335,7 +336,12 @@ const resetPasswordRequest = async (req, res, next) =>
 
                 return res.status(200).json({message:'Success'});
             }
-            else return res.status(500).json({message:'Error'});
+            else 
+            {
+                Logger.write('user', `Error inside resetPasswordRequest. User with email ${email} not found.`, 2);
+
+                return res.status(500).json({message:'Error'});
+            }
         }
     }
     catch (error)
@@ -610,7 +616,7 @@ const helperDeleteUser = async (email) =>
             secondUser = await User.findById(secondUser).exec();
             
             let postMatches = secondUser.matches.filter(id => !id.equals(match._id));
-            let postRooms = secondUser.rooms.filter(id => !id.equals(rooms[i]._id));
+            let postRooms = secondUser.rooms.filter(id => id !== (rooms[i]._id.toString()));
 
             await User.findByIdAndUpdate(secondUser._id, {rooms: postRooms, matches: postMatches}, (err) => 
             {
@@ -622,11 +628,17 @@ const helperDeleteUser = async (email) =>
                 if (err) Logger.write('user', `Error removing match between users ${email} ${secondUser.email}: ${err}`, 2);
             });
 
-            if (rooms[i])
+            try
+            {
                 await Room.findByIdAndRemove(rooms[i]._id, (err) => 
                 {
                     if (err) Logger.write('user', `Error removing room ${rooms[i].roomId}: ${err}`, 2);
                 });
+            }
+            catch (errorRoom)
+            {
+                Logger.write('user', `Error removing room ${rooms[i]._id}: ${errorRoom}`, 2);
+            }
         }
 
         let avatar = path.join(constants.uploadsFolder, email);
