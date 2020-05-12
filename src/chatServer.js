@@ -66,27 +66,34 @@ var start = function (server, session)
 
                     user0.rooms.forEach(async (roomId, index) => 
                     {
-                        let room = await Room.findById(roomId);
-                        let user1 = await User.findOne({email: userId !== room.user1 ? room.user1 : room.user0});
-                        
-                        if (!user1) 
+                        try
                         {
-                            Logger.write('chat', `Maybe did not find second user with email ${user1.email}`, 2);
-                            socket.disconnect();
-                            return;
-                        }
-
-                        socket.emit('chatData', 
-                        {
-                            user: userId,
-                            roomInformation: 
+                            let room = await Room.findById(roomId);
+                            let user1 = await User.findOne({email: userId !== room.user1 ? room.user1 : room.user0});
+                            
+                            if (!user1) 
                             {
-                                roomId: roomId,
-                                messages: room.messages
-                            },
-                            name: user1.firstName + ' ' + user1.lastName,
-                            email: user1.email
-                        });
+                                Logger.write('chat', `Maybe did not find second user with email ${user1.email}`, 2);
+                                socket.disconnect();
+                                return;
+                            }
+
+                            socket.emit('chatData', 
+                            {
+                                user: userId,
+                                roomInformation: 
+                                {
+                                    roomId: roomId,
+                                    messages: room.messages
+                                },
+                                name: user1.firstName + ' ' + user1.lastName,
+                                email: user1.email
+                            });
+                        }
+                        catch (error0)
+                        {
+                            Logger.write('chat', `Error in chatInitialization ${error0}`, 2);
+                        }
                     });
 
                     await User.findByIdAndUpdate(user0._id, {chatNotification: false}).exec();

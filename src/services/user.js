@@ -596,7 +596,7 @@ const helperDeleteUser = async (email) =>
 
         let user = await User.findOne({'email': email});
         let matches = await Match.find({'_id': {$in: user.matches}});
-        let rooms = await Room.find({'roomId': {$in: user.rooms}});
+        let rooms = await Room.find({'_id': {$in: user.rooms}});
 
         for (i = 0; i < matches.length; i++)
         {
@@ -610,7 +610,7 @@ const helperDeleteUser = async (email) =>
             secondUser = await User.findById(secondUser).exec();
             
             let postMatches = secondUser.matches.filter(id => !id.equals(match._id));
-            let postRooms = secondUser.rooms.filter(id => !id.includes(email));
+            let postRooms = secondUser.rooms.filter(id => !id.equals(rooms[i]._id));
 
             await User.findByIdAndUpdate(secondUser._id, {rooms: postRooms, matches: postMatches}, (err) => 
             {
