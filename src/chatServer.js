@@ -300,7 +300,7 @@ function checkLoginActive()
 
         Logger.write('chat', `Removing ${logToRemove.length} logged in users and ${activeToRemove.length} active users.`);
         for (email in logToRemove) loggedInUsers.delete(email);
-        for (email in activeToRemove) activeToRemove.delete(email);
+        for (email in activeToRemove) activeUsers.delete(email);
     }
     catch(error)
     {
