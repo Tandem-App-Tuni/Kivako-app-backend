@@ -604,6 +604,8 @@ const helperDeleteUser = async (email) =>
         let matches = await Match.find({'_id': {$in: user.matches}});
         let rooms = await Room.find({'_id': {$in: user.rooms}});
 
+        Logger.write('user', `Total number of rooms ${rooms ? rooms.length : 0}!`);
+
         for (i = 0; i < matches.length; i++)
         {
             let match = matches[i];
@@ -614,9 +616,29 @@ const helperDeleteUser = async (email) =>
             else if (match.recipientUser.equals(user._id)) secondUser = match.requesterUser;
             
             secondUser = await User.findById(secondUser).exec();
+            Logger.write('user', `Second user: ${secondUser.email}`);
+
+            let room = undefined;
+            let fuId = user.email;
+            let suId = secondUser.email;
+            for (let tmpRoom of rooms)
+            {
+                Logger.write('user', `Checking room: ${tmpRoom.user0} ${tmpRoom.user1}`);
+
+                let user0 = tmpRoom.user0;
+                let user1 = tmpRoom.user1;
+
+                if ((user0 === fuId && user1 === suId) || (user1 === fuId && user0 === suId))
+                {
+                    room = tmpRoom;
+                    break;
+                }
+            }
+
+            if (room) Logger.write('user', `Room: ${room.user0} ${room.user1}`);
             
             let postMatches = secondUser.matches.filter(id => !id.equals(match._id));
-            let postRooms = secondUser.rooms.filter(id => id !== (rooms[i]._id.toString()));
+            let postRooms = room !== undefined ? secondUser.rooms.filter(id => id !== (room._id.toString())) : secondUser.rooms;
 
             await User.findByIdAndUpdate(secondUser._id, {rooms: postRooms, matches: postMatches}, (err) => 
             {
@@ -627,17 +649,15 @@ const helperDeleteUser = async (email) =>
             {
                 if (err) Logger.write('user', `Error removing match between users ${email} ${secondUser.email}: ${err}`, 2);
             });
+            
+            if (room !== undefined)
+            {
+                Logger.write('user', `Removing room!`);
 
-            try
-            {
-                await Room.findByIdAndRemove(rooms[i]._id, (err) => 
+                await Room.findByIdAndRemove(room._id, (err) => 
                 {
-                    if (err) Logger.write('user', `Error removing room ${rooms[i].roomId}: ${err}`, 2);
+                    if (err) Logger.write('user', `Error removing room ${room.roomId}: ${err}`, 2);
                 });
-            }
-            catch (errorRoom)
-            {
-                Logger.write('user', `Error removing room ${rooms[i]._id}: ${errorRoom}`, 2);
             }
         }
 
