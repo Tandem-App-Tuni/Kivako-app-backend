@@ -171,6 +171,7 @@ const createUser = async (req, res, next) =>
             if (email.endsWith(domain))
             {
                 domainFlag = true;
+                console.log(domainFlag);
                 break;
             }
         }
@@ -226,6 +227,7 @@ const createUser = async (req, res, next) =>
             languagesToTeach: languagesToTeach,
             languagesToLearn: languagesToLearn,
             userIsActivie: userIsActivie,
+            isActivated: true,
             isAdmin: false,
             excludeFromMatching: true,
             password: hashedPassword,

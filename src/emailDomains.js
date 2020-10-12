@@ -11,7 +11,6 @@ const domainObject =
      'helsinki.fi',
      'aalto.fi',
      'jyu.fi',
-     'tuni.fi',
      'utu.fi',
      'oulu.fi',
      'turkuamk.fi',
@@ -47,7 +46,6 @@ const domainObject =
      'xamk.fi',
      'saimia.fi',
      'lab.fi',
-     'univaasa.fi',
      'uwasa.fi']
 };
 
