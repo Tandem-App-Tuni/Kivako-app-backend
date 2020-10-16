@@ -226,7 +226,6 @@ const createUser = async (req, res, next) =>
             languagesToTeach: languagesToTeach,
             languagesToLearn: languagesToLearn,
             userIsActivie: userIsActivie,
-            isActivated: false,
             isAdmin: false,
             excludeFromMatching: true,
             password: hashedPassword,
