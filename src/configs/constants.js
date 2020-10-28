@@ -6,7 +6,7 @@ const path = require('path');
 
 const LOCAL_TEST_ENVIRONMENT = true;
 const LOCAL_LOGIN_STRATEGY = true;
-const MAX_MATCH_COUNT = 50;
+const MAX_MATCH_COUNT = 30;
 const AVATAR_UPLOAD_FOLDER = path.join(__dirname, 'uploads');
 
 const backEndUrl = LOCAL_TEST_ENVIRONMENT ?'http://localhost:3000' : 'https://www.unitandem.fi';
