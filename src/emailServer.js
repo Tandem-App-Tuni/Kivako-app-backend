@@ -3,7 +3,7 @@ const nodemailer = require('nodemailer');
 const constants = require('./configs/constants')
 
 const transporter = nodemailer.createTransport({
-  host: "mail.gandi.net",
+  host: 'ssl0.ovh.net',
   port: 465,
   secure: true,
   auth:
