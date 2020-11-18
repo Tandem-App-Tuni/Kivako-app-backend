@@ -340,6 +340,27 @@ const removeExistingMatch = async(req, res, next) =>
     }
 }
 
+const cancelSendRequest = async (req, res, next) => 
+{
+    try 
+    {
+        const matchId = req.params.matchId;
+        const match = await Match.findById(matchId);
+
+        if (!match) return res.status(404);
+        
+        removeMatchHelper(match);
+
+        return res.status(200).json({});
+    } 
+    catch (error) 
+    {
+        Logger.write('match', `Error inside cancelSendRequest ${error}`, 2);
+
+        return res.status(500).json({});
+    }
+}
+
 const removeMatchHelper = async(match) =>
 {
     try
@@ -401,5 +422,6 @@ module.exports = {
     acceptNewMatchRequest: acceptNewMatchRequest,
     denyMatchRequest: denyMatchRequest,
     getUserCurrentActiveMatches: getUserCurrentActiveMatches,
-    removeExistingMatch:removeExistingMatch
+    removeExistingMatch:removeExistingMatch,
+    cancelSendRequest: cancelSendRequest
 }
