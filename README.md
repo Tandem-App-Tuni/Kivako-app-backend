@@ -48,6 +48,10 @@ Real server password is store in Microsoft Team in channel: **Documents**,  in f
 ### WINDOWS
     TBD - Key word for google, how to set node environment variable
 
+# Running the tests
+1. Navigate to the root folder of the project
+2. Run command "npm test"
+
 # Folder structure
  
  - auth: The folder contains help functions related to authentication of the user, as check if user is authenticated.
