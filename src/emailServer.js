@@ -6,7 +6,7 @@ const transporter = nodemailer.createTransport({
   host: 'mail.gandi.net',
   port: 465,
   secure: true,
-  auth: 
+  auth:
   {
     user: serverEmailAddress,
     pass: process.env.PASS

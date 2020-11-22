@@ -761,6 +761,7 @@ const setMatchingVisibility = async (req, res, next) =>
 module.exports = {
     getUserInformation: getUserInformation,
     createUser: createUser,
+    validEmail: validEmail,
     updateUser: updateUser,
     deleteUser: deleteUser,
     checkIfUserAlreadyRegistered: checkIfUserAlreadyRegistered,
