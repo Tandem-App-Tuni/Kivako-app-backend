@@ -36,4 +36,8 @@ router.get('/getUserActiveMatches', auth.isAuthenticated, matchService.getUserCu
 //http://localhost:3000/api/v1/usersMatch/removeExistingMatch/ // POST REQUEST
 router.post('/removeExistingMatch', auth.isAuthenticated, matchService.removeExistingMatch);
 
+// Cancel send requests
+//http://localhost:3000/api/v1/usersMatch/cancelSendRequest/:matchId // POST REQUEST
+router.post('/cancelSendRequest/:matchId', auth.isAuthenticated, matchService.cancelSendRequest);
+
 module.exports = router;
