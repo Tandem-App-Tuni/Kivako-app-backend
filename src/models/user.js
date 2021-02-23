@@ -4,62 +4,99 @@ const Schema = mongoose.Schema;
 var languageSchema = new mongoose.Schema({ language: String, level: String, credits: Number }, { noId: true });
 
 var userSchema = new mongoose.Schema({
-  firstName: {
-      type: String,
-      required: true
+  firstName: 
+  {
+    type: String,
+    required: true
   },
-  lastName: {
-      type: String,
-      required: true
+  lastName: 
+  {
+    type: String,
+    required: true
   },
-  email: {
-      type: String,
-      required: true
+  isActivated:
+  {
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  excludeFromMatching:
+  {
+    type: Boolean,
+    requred: true,
+    default: false
+  },
+  activationKey:
+  {
+    type: String,
+    required: true
+  },
+  activationStamp:
+  {
+    type: Date,
+    required: true
+  },
+  email: 
+  {
+    type: String,
+    required: true
   },
   password:
   {
-      type: String,
-      required: true
+    type: String,
+    required: true
   },
-  cities: {
-      type: [String]
+  cities: 
+  {
+    type: [String]
   },
-  descriptionText: {
-      type: String,
-      required: true
+  descriptionText: 
+  {
+    type: String,
+    required: true,
+    default: 'No description.'
   },
-  languagesToTeach: {
-      type: [languageSchema], // Format: {"language":"PT", "level": "B2", "credits": 3}
-      required: true
+  languagesToTeach: 
+  {
+    type: [languageSchema], // Format: {"language":"PT", "level": "B2", "credits": 3}
+    required: true
   },
-  languagesToLearn: {
-      type: [languageSchema], // Format: {"language":"PT", "level": "B2", "credits": 3}
-      required: true
+  languagesToLearn: 
+  {
+    type: [languageSchema], // Format: {"language":"PT", "level": "B2", "credits": 3}
+    required: true
   },
-  userIsActivie:{
-      type: Boolean,
-      required: true,
-      default:true
+  isActive:
+  {
+    type: Boolean,
+    required: true,
+    default:true
   },
-  lastUserAccess:{ 
-      type: Date, 
-      default: Date.now 
-  },
-  profileImg:{ 
-      type:String
+  lastUserAccess:
+  { 
+    type: Date, 
+    default: Date.now 
   },
   rooms:
   {
     type:[String]
   },
   matches:[{type: Schema.Types.ObjectId, ref: 'Match'}], // List of the matches that user has, counting current and historic ones.
-  isAdmin:{
-      type: Boolean,
-      required:true,
-      default:false
+  
+  isAdmin:
+  {
+    type: Boolean,
+    required:true,
+    default:false
   },
-  university:{
-      type:String
+  profileVideoURL: 
+  {
+    type: String,
+    required: false
+  },
+  chatNotification:
+  {
+    type: Boolean
   }
 });
 

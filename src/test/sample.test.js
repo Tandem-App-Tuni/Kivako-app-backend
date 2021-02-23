@@ -1,18 +1,32 @@
-const request = require('supertest')
-const userServices = require('../services/user')
-const app = require('../server')
+const { validEmail } = require('../services/user');
+const chai = require('chai');
 
+describe('Testing functions', () => {
+  describe('validEmail() function', () => {
+    it('Testing email juuso.huhtivuo@tuni.fi. Should be true', () => {
+      chai.expect(validEmail('juuso.huhtivuo@tuni.fi')).to.be.true;
+    })
 
-describe('Test Functions', () => {
-  it('should get all users', async () => {
-    const test = userServices.getUsers();
-    expect(test.statusCode).toEqual(500)
+    it('Testing email ex.example@utu.fi. Should be true', () => {
+      chai.expect(validEmail('ex.example@utu.fi')).to.be.true;
+    })
+    
+    it('Testing empty email string. Should be false', () => {
+      chai.expect(validEmail('')).to.be.false;
+    })
+
+    it('Testing email juuso.tuni.fi. Should be false', () => {
+      chai.expect(validEmail('juuso.tuni.fi')).to.be.false;
+    })
+    
+    it('Testing email tuni.fi@juuso. Should be false', () => {
+      chai.expect(validEmail('tuni.fi@juuso')).to.be.false;
+    })
   })
 })
 
-
-describe('Sample Test', () => {
-    it('should test that true === true', () => {
-      expect(true).toBe(true)
-    })
+describe('Sample tests', () => {
+  it('Tests that true === true', () => {
+    chai.expect(true).to.be.true;
   })
+})

@@ -2,6 +2,12 @@ const User = require('../models/user');
 const session = require('express-session');
 const UniversityList = require('./constants/universities')
 
+const characters = 'ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghjklmnopqrstuvwxyz1234567890$-_.+!*()';
+const nCharacters = characters.length;
+const keyLength = 5;
+
+var crypto = require('crypto');
+
 const getUserLoggedInfoWithEmail = async (req, res, next) => {
     const email = req.user.email;
 
@@ -32,28 +38,20 @@ const getUserInfoWithEmail = async (req, res, next) => {
     return user;
 }
 
-//TODO -> CHANGE THIS TO BE A REFERENCE OF CONSTANT UNIVERSITIES FILE
-const universities = {
-    "tuni.fi": "Tampere Universities",
-    "test.fi": "Test Universities",
-    "test2.fi": "Test Universities 2",
-};
+function generateRandomActivationKey(userId)
+{
+    let generatedKey = '';
+    for (i = 0; i < keyLength; i++) generatedKey += characters.charAt(Math.floor(Math.random() * (nCharacters - 1)));
 
-const getUserUniversityWithEmail = async (email) => {
-    let userUniversity = "";
-    let emailDomain = email.replace(/.*@/, "");
+    let shasum = crypto.createHash('sha1');
+    shasum.update(userId + generatedKey);
 
-    userUniversity = universities[emailDomain]
-
-    return userUniversity;
+    return shasum.digest('hex');
 }
-
-
-
 
 module.exports = {
     getUserIdFromAuthenticatedRequest: getUserIdFromAuthenticatedRequest,
     getUserInfoWithEmail: getUserInfoWithEmail,
     getUserLoggedInfoWithEmail: getUserLoggedInfoWithEmail,
-    getUserUniversityWithEmail: getUserUniversityWithEmail
+    generateRandomActivationKey:generateRandomActivationKey
 }

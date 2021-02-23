@@ -3,18 +3,17 @@ const fs = require('fs');
 const User = require('./models/user');
 const Room = require('./models/room.js');
 
-// Total number of users currently online and chating.
-var totalUserOnline = 0;
+const Logger = require('./logger');
+const Email = require('./emailServer.js');
+const schedule = require('node-schedule');
 
-var incrementTotalUserCount = function () {
-    totalUserOnline++;
-}
-
-var decreaseTotalUserCount = function () {
-    totalUserOnline--;
-
-    if (totalUserOnline < 0) console.log('Total user count is below 0...report this to the maintainer!');
-}
+/**
+ * activeUsers are the user currently using the chat system.
+ * loggedInUsers are the users logged into the application but not necessarily inside the chat.
+ * activeUsers are a subset of loggedInUsers.
+ */
+const activeUsers = new Map();
+const loggedInUsers = new Map();
 
 /**
  * ChatServer creates a socket.io session, managing user ids
@@ -27,144 +26,287 @@ var decreaseTotalUserCount = function () {
  * @param {*} server The express server, cupling the http server with socket.io
  * @param {*} session The session of the server, shared with socket.io
  */
-var start = function (server, session) {
+var start = function (server, session) 
+{
     var shrdSession = require("express-socket.io-session");
     var io = require('socket.io').listen(server);
     io.use(shrdSession(session));
 
-    io.on('connection', (socket) => {
+    io.on('connection', async (socket) =>
+    {
         var passportSession = socket.handshake.session.passport;
 
-        console.log('Trying to create connection...');
+        Logger.write('chat', `Trying to create connection ${passportSession}`);
 
-        /**
-         * An authenticated user joins the room for the first time.
-         * Appropriate objects are created and sent to the client
-         * for displaying.
-         */
-        if ((typeof passportSession) != 'undefined') {
-            let userId = passportSession.user.email;
-
-            User.findOne({
-                email: userId
-            }).then((userData) => {
-                if (!userData) {
-                    console.log('Did not find user with email:', userId, 'Report this to the mantainer!');
-                    socket.disconnect();
-                    return;
-                }
-
-                userData.rooms.forEach((roomId, index) => {
-                    let secondUserId;
-                    roomId.split('|').forEach((element) => {
-                        if (element != userId) secondUserId = element;
-                    });
-
-                    Room.findOne({
-                        roomId: roomId
-                    }).then((roomData) => {
-                        if (!roomData) {
-                            console.log('Did not find room with id:', element, 'Report this to the mantainer!');
-                            socket.disconnect();
-                            return;
-                        }
-
-                        User.findOne({
-                            email: secondUserId
-                        }).then((secondUserData) => {
-                            if (!secondUserData) {
-                                console.log('Did not find second user with email:', secondUserData.email, 'Report this to the mantainer!');
-                                return;
-                            }
-
-                            socket.emit('initialization', {
-                                user: userId,
-                                roomInformation: {
-                                    roomId: roomId,
-                                    messages: roomData.messages
-                                },
-                                name: secondUserData.firstName + ' ' + secondUserData.lastName
-                            });
-                        });
-                    });
-                });
-
-
-                incrementTotalUserCount();
-                console.log('User email: ' + userId);
-                console.log('User connected sucessfully!');
-            });
-        } else {
-            console.log('Disconnecting unauthorised client connection!');
+        if (passportSession)
+        {
+            Logger.write('chat', `Session authenticated!`);
+            loggedInUsers.set(passportSession.user.email, socket);
+        }
+        else
+        {
+            Logger.write('chat', `Disconnecting unauthorised client connection!`);
             socket.disconnect();
         }
 
-        /**
-         * Functino listens to socket disconnection events.
-         * */
-        socket.on('disconnect', function () {
-            let userId = passportSession.user.email;
-
-            decreaseTotalUserCount();
-            console.log('User information removed...disconnecting user ' + userId);
-        });
-
-        /**
-         * Function listens for client room subscription events.
-         * The data sent from the client contains information 
-         * about the room the client is leaving and the room they are
-         * trying to enter. TODO add check if room is valid for user.
-         * Also sends the room messages object to the client in case unbuffered
-         * messages were sent when he/she was not subscribed to the room.
-         */
-        socket.on('subscribe', function (data) {
-            console.log('Channel subscription request: ' + data.from, data.to + ' -> ' + passportSession.user.email);
-
-            if (data.from != 'null') socket.leave(data.from);
-            if (data.to != 'null') {
-                socket.join(data.to);
-
-                Room.findOne({
-                    roomId: data.to
-                }).then((roomData) => {
-                    if (!roomData) {
-                        console.log('Room with ID', data.to, 'not found!');
+        socket.on('chatInitialization', async function ()
+        {
+            try
+            {
+                if ((typeof passportSession) != 'undefined') 
+                {
+                    let userId = passportSession.user.email;
+                    let user0 = await User.findOne({email: userId});
+                    
+                    if (!user0) 
+                    {
+                        Logger.write('chat', `Did not find user with email ${userId}`, 2);
+                        socket.disconnect();
                         return;
                     }
 
-                    socket.emit('roomUpdate', {
-                        roomId: data.to,
-                        room: roomData
+                    activeUsers.set(userId, 1);
+
+
+                    user0.rooms.forEach(async (roomId, index) => 
+                    {
+                        try
+                        {
+                            let room = await Room.findById(roomId);
+                            let user1 = await User.findOne({email: userId !== room.user1 ? room.user1 : room.user0});
+                            
+                            if (!user1) 
+                            {
+                                Logger.write('chat', `Maybe did not find second user with email ${user1.email}`, 2);
+                                socket.disconnect();
+                                return;
+                            }
+
+                            socket.emit('chatData', 
+                            {
+                                user: userId,
+                                roomInformation: 
+                                {
+                                    roomId: roomId,
+                                    messages: room.messages
+                                },
+                                name: user1.firstName + ' ' + user1.lastName,
+                                email: user1.email
+                            });
+                        }
+                        catch (error0)
+                        {
+                            Logger.write('chat', `Error in chatInitialization ${error0}`, 2);
+                        }
                     });
-                });
+
+                    await User.findByIdAndUpdate(user0._id, {chatNotification: false}).exec();
+
+                    Logger.write('chat', `User email ${userId}`);
+                    Logger.write('chat', `User connected to the chat successfully!`);
+                } 
+            }
+            catch(error)
+            {
+                Logger.write('chat', `Error in chatInitialization ${error}`, 2);
             }
         });
 
-        /**
-         * Function listens for all messages emited by clients.
-         * The message is stored in the room object and emited
-         * to all clients listening on the room.
-         */
-        socket.on('message', function (data) {
-            var user = data.user;
-            var message = data.message;
-            var roomId = data.roomId;
+        socket.on('adminGlobal', function(e) 
+        {
+            try
+            {
+                Logger.write('chat', `Global message ${e.message}`);
+                io.sockets.emit('broadcast', {message: e.message});
+            }
+            catch (error)
+            {
+                Logger.write('chat', `Error in adminGlobal ${error}`, 2);
+            }
+        });
 
-            console.log('Message recieved from user', user, 'from room', roomId, '->', message);
+        socket.on('disconnect', function () 
+        {
+            try
+            {
+                if (passportSession)
+                {
+                    let userId = passportSession.user.email;
+                    Logger.write('chat', `User with id ${userId} disconnected.`);
 
-            socket.to(roomId).emit('message', message);
-            Room.findOneAndUpdate({
-                roomId: roomId
-            }, {
-                $push: {
-                    messages: message
+                    if (activeUsers.has(userId)) activeUsers.delete(userId);
+                    loggedInUsers.delete(userId);
                 }
-            }).exec();
+                else Logger.write('chat', `User disconnected ${socket.handshake.session.passport}.`);
+            }
+            catch (error)
+            {
+                Logger.write('chat', `Error disconnecting from the chat server ${error}`);
+            }
+        });
+
+        socket.on('subscribe', async function (data) 
+        {
+            try
+            {
+                const userId = passportSession.user.email;
+                Logger.write('chat', `Channel subscription request: ${data.from} ${data.to} -> ${passportSession.user.email}`);
+
+                if (data.from != 'null') socket.leave(data.from);
+                if (data.to != 'null') 
+                {
+                    socket.join(data.to);
+
+                    let room = await Room.findById(data.to);
+
+                    if (!room) 
+                    {
+                        Logger.write('chat', `Room with ID ${data.to} not found.`, 2);
+                        return;
+                    }
+
+                    if ((userId !== room.user0) && (userId !== room.user1))
+                    {
+                        Logger.write('chat', `User ${passportSession.user.email} requested invalid room!`, 2);
+                        socket.disconnect();
+                        return;
+                    }
+
+                    socket.emit('roomUpdate', 
+                    {
+                        roomId: data.to,
+                        room: room
+                    });
+                }
+            }
+            catch (error)
+            {
+                Logger.write('chat', `Error in subscribe ${error}.`, 2);
+            }
+        });
+
+        socket.on('chatLeave', async function(data) 
+        {
+            try
+            {
+                Logger.write('chat', `User ${passportSession.user.email} leaving the chat.`);
+                activeUsers.delete(passportSession.user.email);
+            }
+            catch(error)
+            {
+                Logger.write('chat', `Error in chatLeave ${error}.`);
+            }
+        });        
+
+        socket.on('checkNotifications', async function() 
+        {
+            try
+            {
+                let user = await User.findOne({email:passportSession.user.email}, 'chatNotification');
+
+                Logger.write('chat', `User to send notification: ${user}`);
+
+                if (user.chatNotification) socket.emit('notification', {});
+            }
+            catch (error)
+            {
+                Logger.write('chat', `Error in checkNotifications ${error}`);
+            }
+        });
+
+        socket.on('message', async function (data) 
+        {
+            try
+            {
+                let userId = passportSession.user.email;
+                let user = data.user;
+                let message = data.message;
+                let roomId = data.roomId;
+
+                Logger.write('chat', `Message recieved from user ${user} from room ${roomId}.`);
+
+                socket.to(roomId).emit('message', message);
+
+                let room = await Room.findByIdAndUpdate(roomId, {$push: {messages: message}});
+                let user1 = room.user0 !== userId ? room.user0 : room.user1;
+
+                if (!activeUsers.has(user1)) 
+                {
+                    await User.findOneAndUpdate({email:user1}, {chatNotification: true});
+
+                    Logger.write('chat', `[CHAT] User logged in ${loggedInUsers.has(user1)}`);
+
+                    if (loggedInUsers.has(user1)) 
+                    {
+                        loggedInUsers.get(user1).emit('notification', {});
+                    }
+                    else
+                    {
+                        Email.sendNewMessageNotificationEmail(await User.findOne({email: user}), user1, message.text);
+                    }
+                }
+            }
+            catch (error)
+            {
+                Logger.write('chat', `[CHAT ERROR] Error in message ${error}`, 2);
+            }
         });
     });
 
-    console.log('ChatServer online!');
+    schedule.scheduleJob('10 * * * *', () => checkLoginActive());
+
+    Logger.write('chat', `[CHAT] ChatServer online!`);
 };
+
+/**
+ * Check if there are some inactive sockets inside
+ * activeUsers and loggedInUsers and remove those that are.
+ */
+function checkLoginActive()
+{
+    try
+    {
+        Logger.write('chat', `Checking map contents a:${activeUsers.size} l:${loggedInUsers.size}`);
+
+        if (activeUsers.size > loggedInUsers.size)
+        {
+            Logger.write('chat', 'More active users than logged in users!', 2);
+        }
+
+        let logToRemove = [];
+        let activeToRemove = [];
+
+        for (let email of loggedInUsers.keys())
+        {
+            const socket = loggedInUsers.get(email);
+            if (!socket.connected)
+            {
+                Logger.write('chat', `User ${email} recorded in login but not connected...removing.`);
+
+                logToRemove.push(email);
+            }
+        }
+
+        for (let email of activeUsers.keys())
+        {
+            const socket = activeUsers.get(email);
+            if (!socket.connected)
+            {
+                Logger.write('chat', `User ${email} recorded in active but not connected...removing.`);
+
+                activeToRemove.push(email);
+            }
+        }
+
+        Logger.write('chat', `Removing ${logToRemove.length} logged in users and ${activeToRemove.length} active users.`);
+        for (email in logToRemove) loggedInUsers.delete(email);
+        for (email in activeToRemove) activeUsers.delete(email);
+    }
+    catch(error)
+    {
+        Logger.write('chat', `Error inside checkLoginActive: ${error}`, 2);
+    }
+}
 
 
 module.exports = {

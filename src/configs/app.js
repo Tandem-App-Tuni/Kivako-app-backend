@@ -8,19 +8,18 @@ const cors = require('cors')
 const chatServer = require('../chatServer');
 const schedule = require('node-schedule')
 const dailyFunctions = require('../dailyFunctions')
+const maintenanceFunctions = require('../maintenanceFunctions')
 var favicon = require('serve-favicon');
-const httpProxy = require('http-proxy');
-const proxy = httpProxy.createServer({});
 
 const loginStrategy = require('./loginStrategy')();
+const logger = require('../logger');
 
 const constants = require('./constants')
 
-
 // Front end Server URL's
-const frontEndURL = constants.frontEndURL; //'https://www.unitandem.fi'; //localhost:3001
-const adminFrontEndURL = constants.adminFrontEndURL; //'http://localhost:3002';
-const smlAuthenticationProvider = constants.smlAuthenticationProvider; //'http://localhost:8080';
+const frontEndURL = constants.frontEndURL; 
+const adminFrontEndURL = constants.adminFrontEndURL;
+const smlAuthenticationProvider = constants.smlAuthenticationProvider;
 
 module.exports = function () {
     let server = express(),
@@ -30,8 +29,9 @@ module.exports = function () {
     var allowedOrigins = [frontEndURL, adminFrontEndURL, smlAuthenticationProvider];
     server.use(cors({
         credentials: true,
-        origin: function (origin, callback) {
-            console.log(origin)
+        origin: function (origin, callback) 
+        {
+            console.log('Request origin:', origin);
             // allow requests with no origin 
             // (like mobile apps or curl requests)
             if (!origin) return callback(null, true);
@@ -47,7 +47,10 @@ module.exports = function () {
 
     var appSession;
 
-    create = (config, db) => {
+    create = (config, db) => 
+    {
+        logger.init();
+
         let routes = require('../routes');
 
         // Set the server variables
@@ -69,6 +72,8 @@ module.exports = function () {
         }));
         server.use(cookieParser());
         server.use(express.static(path.join(__dirname, 'public')));
+        //server.use(express.static(constants.uploadsFolder));
+
         server.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 
         // Set up passport env
@@ -80,15 +85,9 @@ module.exports = function () {
         });
         server.use(appSession);
 
-        // Function creates the login strategy for application.
-        if (constants.localLoginStrategy) {
-            // Use local login strategy
-            loginStrategy.createLocalLogin(server);
-        } else {
-            // Use HAKA login strategy
-            loginStrategy.createSAMLLogin(server);
-        }
 
+        if (constants.localLoginStrategy) loginStrategy.createLocalLogin(server);
+        else loginStrategy.createSAMLLogin(server);
 
         // Set initial LOGIN routes
         async function checkIfUserIsRegistered(userEmail) {
@@ -100,54 +99,68 @@ module.exports = function () {
             return user;
         }
 
-        server.get('/login/check', async function (req, res) {
+        server.get('*', function (req, res, next) 
+        {
+            console.log('Request was made to: ' + req.originalUrl);
+            return next();
+        });
+
+        server.post('*', function (req, res, next)
+        {
+            console.log('Post request was made to: ' + req.originalUrl);
+            return next();
+        });
+
+        server.get('/login/check', async function (req, res) 
+        {
             let userAuthenticaded = req.isAuthenticated();
             console.log('/login/check -> Checking authentication:', userAuthenticaded, req.user);
 
-            if (userAuthenticaded) {
+            if (userAuthenticaded) 
+            {
                 let userAlreadyRegistered = await checkIfUserIsRegistered(req.user.email);
 
-                if (userAlreadyRegistered === null) {
+                if (userAlreadyRegistered === null) 
+                {
                     //User not registered
-                    console.log("[DEBUG]User not registered, redirecting to register page")
+                    console.log("[DEBUG] User not registered, redirecting to register page")
                     //res.redirect(frontEndURL + '/register');
                     res.send('/register');
-                } else {
-                    if(userAlreadyRegistered.isAdmin){
-                        // Redirect to admin system initial page
-                        res.send('/list-admins')
-                    }else{
-                        // Redirect to normal system initial page 
-                        res.send('/browse-match');
-                    }
-                    //console.log("[DEBUG]User already registered")
-                    
+                } 
+                else 
+                {
+                    if(userAlreadyRegistered.isAdmin) res.send('/list-admins')
+                    else res.send('/browse-match');
                 }
-            } else {
-                res.send('/');
-            }
-
+            } 
+            else res.send('/');
         });
 
-        server.get('/login/redirected', function (req, res) {
+        server.get('/login/redirected', function (req, res) 
+        {
             res.send(req.isAuthenticated());
         });
 
-        server.get('/isAuthenticated', function (req, res) {
-            if (req.isAuthenticated()) {
+        server.get('/isAuthenticated', function (req, res) 
+        {
+            if (req.isAuthenticated()) 
+            {
                 return res.status(200).json({
                     'isAuthenticated': req.isAuthenticated(),
                     'email': req.user.email
                 });
-            } else {
-                res.status(403).json({
-                    'message': 'access denied'
+            } else 
+            {
+                return res.status(200).json({
+                    'isAuthenticated': false,
+                    'email': ''
                 });
             }
         });
 
         server.get('/logout', function (req, res) {
             req.logout();
+            req.session.destroy();
             res.redirect(frontEndURL + '/');
         });
 
@@ -182,10 +195,16 @@ module.exports = function () {
         chatServer.start(app, appSession);
 
         // Activate daily schedule functions
-        schedule.scheduleJob('0 0 * * *', function () {
+        schedule.scheduleJob('0 0 * * *', function () 
+        {
             dailyFunctions.runDailyFunctions();
         });
 
+        schedule.scheduleJob('0 0 * * *', function () 
+        {
+            maintenanceFunctions.databaseCheck();
+        });
+        
         console.log("[INFO] Daily functions running succesfully!");
     };
 

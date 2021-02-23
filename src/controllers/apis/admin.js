@@ -16,6 +16,9 @@ router.get('/statiticsOpen', adminService.getLanguageStatitics);
 //http://localhost:3000/api/v1/admin/studentUsers // GET REQUEST
 router.get('/studentUsers', auth.checkIfUserIsAuthenticatedAndAdmin, adminService.getStudentUsers);
 
+//http://localhost:3000/api/v1/admin/matches
+router.get('/matches', auth.checkIfUserIsAuthenticatedAndAdmin, adminService.getMatches);
+
 //Get a list of all admin users in system
 //http://localhost:3000/api/v1/admin/adminUsers // GET REQUEST
 router.get('/adminUsers', auth.checkIfUserIsAuthenticatedAndAdmin, adminService.getAdminUsers);

@@ -5,10 +5,12 @@ const express = require('express');
 const User = require('../models/user');
 const Match = require('../models/match');
 var passwordHash = require('password-hash');
+const Logger = require('../logger');
 
-
-const getLanguageStatitics = async (req, res, next) => {
-    try {
+const getLanguageStatitics = async (req, res, next) => 
+{
+    try 
+    {
         let languageStatitics = []
 
         // Check in each learn language the possible matchs, and save this users in a list
@@ -23,8 +25,6 @@ const getLanguageStatitics = async (req, res, next) => {
                 "matchLanguage": languages[i],
                 "status": 2
             }, );
-
-            //console.log(languages[i] + " / Learn: " + languagesToTeach + " / Teach: " + languagesToLearn + " / Matches: " + matchesInLanguage)
 
             let format = {
                 language: languages[i],
@@ -41,7 +41,10 @@ const getLanguageStatitics = async (req, res, next) => {
             'data': languageStatitics
         });
 
-    } catch (error) {
+    } catch (error) 
+    {
+        Logger.write('admin', `Error in getLanguageStatistics ${error}`, 2);
+
         return res.status(500).json({
             'code': 'SERVER_ERROR',
             'description': 'something went wrong, Please try again'
@@ -49,9 +52,10 @@ const getLanguageStatitics = async (req, res, next) => {
     }
 }
 
-const getStudentUsers = async (req, res, next) => {
-    try {
-
+const getStudentUsers = async (req, res, next) => 
+{
+    try 
+    {   
         let users = await User.find({
             "isAdmin": false
         }, {
@@ -61,22 +65,34 @@ const getStudentUsers = async (req, res, next) => {
             matches: 0
         });
 
-        if (users.length > 0) {
-            return res.status(200).json({
-                //'message': 'users fetched successfully',
-                'data': users
-            });
-        }
+        if (users.length > 0) return res.status(200).json({data: users});
+        return res.status(404).json({data:[]});
+    } 
+    catch (error) 
+    {
+        Logger.write('admin', `Error in getStudentUsers ${error}`, 2);
 
-        return res.status(404).json({
-            'code': 'BAD_REQUEST_ERROR',
-            'description': 'No users found in the system'
-        });
-    } catch (error) {
-        return res.status(500).json({
-            'code': 'SERVER_ERROR',
-            'description': 'something went wrong, Please try again'
-        });
+        return res.status(500).json({data:[]});
+    }
+}
+
+const getMatches = async (req, res, next) => 
+{
+    try
+    {
+        let matches = await Match.find({}, {_id:0, requesterUser: 1, recipientUser: 1, status:1})
+                                 .populate('requesterUser', {_id:0, firstName:1, lastName:1, languagesToTeach:1, languagesToLearn:1, email:1})
+                                 .populate('recipientUser', {_id:0, firstName:1, lastName:1, languagesToTeach:1, languagesToLearn:1, email:1});
+
+        matches = matches.filter(e => (e.requesterUser !== null) && (e.recipientUser !== null) && (e.status === 2));
+
+        return res.status(200).json({data: matches});
+    }
+    catch(error)
+    {
+        Logger.write('admin', `Error in getMatches ${error}`, 2);
+
+        console.log('[ADMIN] Error in getMatches', error);
     }
 }
 
@@ -103,6 +119,8 @@ const getAdminUsers = async (req, res, next) => {
             'description': 'No users found in the system'
         });
     } catch (error) {
+        Logger.write('admin', `Error in getAdminUsers ${error}`, 2);
+
         return res.status(500).json({
             'code': 'SERVER_ERROR',
             'description': 'something went wrong, Please try again'
@@ -170,6 +188,8 @@ const createAdminUser = async (req, res, next) => {
             throw new Error('something went worng');
         }
     } catch (error) {
+        Logger.write('admin', `Error in createAdminUser ${error}`, 2);
+
         return res.status(500).json({
             'code': 'SERVER_ERROR',
             'description': 'something went wrong, Please try again'
@@ -181,7 +201,8 @@ module.exports = {
     getLanguageStatitics: getLanguageStatitics,
     getStudentUsers: getStudentUsers,
     getAdminUsers: getAdminUsers,
-    createAdminUser: createAdminUser
+    createAdminUser: createAdminUser,
+    getMatches:getMatches
 };
 
 const languages = [

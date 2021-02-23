@@ -32,8 +32,12 @@ router.post('/denyMatchRequest/:matchId', auth.isAuthenticated, matchService.den
 //http://localhost:3000/api/v1/usersMatch/getUserActiveMatches // GET REQUEST
 router.get('/getUserActiveMatches', auth.isAuthenticated, matchService.getUserCurrentActiveMatches);
 
-// Get user old matches
-//http://localhost:3000/api/v1/usersMatch/getUserOldMatches/:email // GET REQUEST
-router.get('/getUserOldMatches/:email', auth.isAuthenticated, matchService.getUserOldMatches);
+//Remove existing match
+//http://localhost:3000/api/v1/usersMatch/removeExistingMatch/ // POST REQUEST
+router.post('/removeExistingMatch', auth.isAuthenticated, matchService.removeExistingMatch);
+
+// Cancel send requests
+//http://localhost:3000/api/v1/usersMatch/cancelSendRequest/:matchId // POST REQUEST
+router.post('/cancelSendRequest/:matchId', auth.isAuthenticated, matchService.cancelSendRequest);
 
 module.exports = router;
