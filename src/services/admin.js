@@ -59,8 +59,6 @@ const getStudentUsers = async (req, res, next) =>
         let users = await User.find({
             "isAdmin": false
         }, {
-            languagesToTeach: 0,
-            languagesToLearn: 0,
             __v: 0,
             matches: 0
         });
