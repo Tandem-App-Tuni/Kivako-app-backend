@@ -1,35 +1,54 @@
-# Commands to run the server
+# Commands to install and run the backend application
 
-* 1) Run database locally
-    mongod or sudo mongod
-    * In case it's not installed, install mongo: https://docs.mongodb.com/v3.2/administration/install-community/
+* Download and install node version 12.18.0 https://nodejs.org
+  
+* Install “nodemon” by running this command : npm install -g nodemon
+  
+* Download and install MongoDB community Edition , note the connection properties  -     https://docs.mongodb.com/manual/administration/install-community/
+  
+* Download and install MongoDBCompass for the UI based DB Management - https://www.mongodb.com/products/compass
 
+* Connect  MongoCompass  to Mongodb using the connection properties earlier during installation of mongoDB, create a new Database  called “kivakodb” , and collection “kivakodb”
 
-* 2) Install server dependencies:
+* Run database locally  mongod or sudo mongod
+  
+* Clone the project from this repo - https://github.com/Tandem-App-Tuni/Kivako-app-backend.git
+  
+* Open the project in your IDE of choice or go to the root folder of the project in the command line or IDE and run
     ```npm install package.json```
 
 
-* 3) Run the server locally with nodemon during the development of the system, so nodemon will restart the server after you update any file:
+* Run the server locally with nodemon during the development of the system, so nodemon will restart the server after you update any file:
     ```
-    cd back_end/src
+    cd root-folder-of-application/src
     nodemon server.js
     ```
 
-* 4) To handle the SAML authentication during the development instead HAKA login for localhost test purposes, run the container image described in https://medium.com/disney-streaming/setup-a-single-sign-on-saml-test-environment-with-docker-and-nodejs-c53fc1a984c9 .The server configurations are already made, so you just need to follow the *Setup our Identity Provider* section.
+* Alternatively from the root-folder-of-application , run 
+  ```
+    npm run start
+    ```
+
+* To handle the SAML authentication during the development instead HAKA login for localhost test purposes, run the container image described in https://medium.com/disney-streaming/setup-a-single-sign-on-saml-test-environment-with-docker-and-nodejs-c53fc1a984c9 .The server configurations are already made, so you just need to follow the *Setup our Identity Provider* section.
 
 
-* 5) You can now access the backends call using a browser or testing requisitions in other ways.
+*  You can now access the backends call using a browser or testing requisitions in other ways.
 
 # Run app in local machine:
-1. Clone the frontend Git repository for the Tandem application: https://github.com/Tandem-App-Tuni/Kivako-App.git. Switch to the devel branch for the latest versions.
-2. Clone back end.
-3. To configure the project to run localy you need to configure both the frontend and the backend applications.
+* Clone the frontend Git repository for the Tandem application: https://github.com/Tandem-App-Tuni/Kivako-App.git. Switch to the devel branch for the latest versions.
+
+* Clone back end.
+
+* To configure the project to run locally you need to configure both the frontend and the backend applications.
    For the frontend, locate the file app/src/config_constants.js. 
    Change the LOCAL_TEST_ENVIRONMENT variable to true for local testing or false for deployment on a server.
    For the backend, locate the src/configs/constants.js and do the same.
-4. Set up the connection to SMTP(email) server locally, refer to "Set up SMTP server connection" section
-5. Run backend according to first section in this readme
-6. To run the frontend go to the app directory and run: npm run start. (Make sure to install all dependencies first by npm install package.json, or do it individually)
+
+* Set up the connection to SMTP(email) server locally, refer to "Set up SMTP server connection" section
+
+* Run backend according to first section in this readme
+
+* To run the frontend go to the app directory and run: npm run start. (Make sure to install all dependencies first by npm install package.json, or do it individually)
 
 # Set up SMTP server connection
 The application use SMTP server that set up in one of Tuni server to send email. All requirement for the connection is in place except the password of the server
@@ -49,15 +68,15 @@ Real server password is store in Microsoft Team in channel: **Documents**,  in f
     TBD - Key word for google, how to set node environment variable
 
 # Running the tests
-1. Navigate to the root folder of the project
-2. Run command "npm test"
+* Navigate to the root folder of the project
+* Run command "npm test"
 
 # Folder structure
  
  - auth: The folder contains help functions related to authentication of the user, as check if user is authenticated.
  - configs: All the configurations related to server are located in this folder, as database connection settings, system parameters, ports configurations, passport authentication configuration, etc.
- - controllers: Controllers handle the communication between the functions and the api calls, making this connections.
- - models: Related to the abstraction of the objects of the system. The model is writed using Mongoose as base.
+ - controllers: Controllers handle the communication between the functions and the api calls, making the connections.
+ - models: Related to the abstraction of the objects of the system. The model is written using Mongoose as base.
  - routes: Handle the initial api call, and call the necessary controllers
  - server.js: Is the file related to run the server 
 
