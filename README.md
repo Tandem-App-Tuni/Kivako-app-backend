@@ -1,12 +1,12 @@
 # Commands to install and run the backend application
 
-* Download and install node version 12.18.0 https://nodejs.org
+* Download and install node version 12.x.x https://nodejs.org
   
 * Install “nodemon” by running this command : npm install -g nodemon
   
 * Download and install MongoDB community Edition , note the connection properties  -     https://docs.mongodb.com/manual/administration/install-community/
   
-* Download and install MongoDBCompass for the UI based DB Management - https://www.mongodb.com/products/compass
+* Download and install MongoDBCompass for the UI based DB Management - https://www.mongodb.com/products/compass or any other suitable UI for the MongoDb.
 
 * Connect  MongoCompass  to Mongodb using the connection properties earlier during installation of mongoDB, create a new Database  called “kivakodb” , and collection “kivakodb”
 
@@ -15,7 +15,7 @@
 * Clone the project from this repo - https://github.com/Tandem-App-Tuni/Kivako-app-backend.git
   
 * Open the project in your IDE of choice or go to the root folder of the project in the command line or IDE and run
-    ```npm install package.json```
+    ```npm install```
 
 
 * Run the server locally with nodemon during the development of the system, so nodemon will restart the server after you update any file:
@@ -28,10 +28,7 @@
   ```
     npm run start
     ```
-
-* To handle the SAML authentication during the development instead HAKA login for localhost test purposes, run the container image described in https://medium.com/disney-streaming/setup-a-single-sign-on-saml-test-environment-with-docker-and-nodejs-c53fc1a984c9 .The server configurations are already made, so you just need to follow the *Setup our Identity Provider* section.
-
-
+  
 *  You can now access the backends call using a browser or testing requisitions in other ways.
 
 # Run app in local machine:
