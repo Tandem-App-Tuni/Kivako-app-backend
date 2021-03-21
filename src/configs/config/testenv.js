@@ -1,5 +1,5 @@
 let testEnvConfig = {
-    hostname: process.env.ENV_URL,
+    hostname: '',
     port: ''
   };
   
