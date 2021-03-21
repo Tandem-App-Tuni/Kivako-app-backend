@@ -1,6 +1,6 @@
 let testEnvConfig = {
     hostname: '',
-    port: ''
+    port: '3000'
   };
   
   module.exports = testEnvConfig;
