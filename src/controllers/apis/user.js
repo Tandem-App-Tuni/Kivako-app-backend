@@ -41,6 +41,13 @@ router.delete('/delete', auth.isAuthenticated, userService.deleteUser);
 //http://localhost:3000/api/v1/users/deleteAdmin/
 router.get('/deleteAdmin/*', auth.isAuthenticated, userService.adminDeleteUser);
 
+//http://localhost:3000/api/v1/users/updateUserToAdmin/
+router.post('/updateUserToAdmin/*', auth.isAuthenticated, userService.updateUserToAdmin);
+
+//http://localhost:3000/api/v1/users/removeAdminStatus/
+router.post('/removeAdminStatus/*', auth.isAuthenticated, userService.removeAdminStatus);
+
+
 //http://localhost:3000/api/v1/users/resetPasswordRequest
 router.get('/resetPasswordRequest/*', userService.resetPasswordRequest);
 
