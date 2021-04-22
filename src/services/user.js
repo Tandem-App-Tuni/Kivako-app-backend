@@ -436,8 +436,7 @@ const reactivateUser = async(req, res, next) =>
     }
 }
 
-const updateUser = async (req, res, next) => 
-{
+const updateUser = async (req, res, next) => {
     try 
     {
         const userEmail = req.user.email;
@@ -505,6 +504,141 @@ const updateUser = async (req, res, next) =>
     }
 }
 
+const updateUserToAdmin = async (req, res, next) => {
+    try{
+
+        let userEmail = req.path.split('/');
+        userEmail = userEmail[userEmail.length - 1];
+
+        Logger.write('user', `Update UserToAdmin with email  ${userEmail}`);
+
+        let user = await User.findOne({'email': userEmail});
+        const userId = user._id;
+
+        let isUserExists = await User.findById(userId);
+
+        if (!isUserExists) {
+            return res.status(404).json({
+                'code': 'BAD_REQUEST_ERROR',
+                'description': 'No user found in the system'
+            });
+        }
+
+        const updateAdminStatus = {
+            isAdmin : true
+        }
+
+        let updateUser = await User.findByIdAndUpdate(userId, updateAdminStatus, {
+            new: true // TODO REMOVE THIS
+        });
+
+        if (updateUser) {
+            return res.status(200).json({
+                'update': true,
+                'data': updateUser
+            });
+        } else {
+            throw new Error('Error occurred while updating user admin status');
+        }
+    }catch(error) {
+        Logger.write('user', `Error inside updateUserToAdmin ${error}`, 2);
+
+        return res.status(500).json({
+            'code': 'SERVER_ERROR',
+            'description': 'An Error occurred trying to update user to admin status'
+        });
+    }
+}
+
+const removeAdminStatus = async (req, res, next) => {
+    try{
+
+        let userEmail = req.path.split('/');
+        userEmail = userEmail[userEmail.length - 1];
+
+        Logger.write('user', `Remove Admin status  with email  ${userEmail}`);
+
+        let user = await User.findOne({'email': userEmail});
+        const userId = user._id;
+
+        let isUserExists = await User.findById(userId);
+
+        if (!isUserExists) {
+            return res.status(404).json({
+                'code': 'BAD_REQUEST_ERROR',
+                'description': 'No user found in the system'
+            });
+        }
+
+        const updateAdminStatus = {
+            isAdmin : false
+        }
+
+        let updateUser = await User.findByIdAndUpdate(userId, updateAdminStatus, {
+            new: true // TODO REMOVE THIS
+        });
+
+        if (updateUser) {
+            return res.status(200).json({
+                'update': true,
+                'data': updateUser
+            });
+        } else {
+            throw new Error('Error occurred while removing  admin status');
+        }
+    }catch(error) {
+        Logger.write('user', `Error inside removeAdminStatus ${error}`, 2);
+
+        return res.status(500).json({
+            'code': 'SERVER_ERROR',
+            'description': 'An Error occurred trying to remove admin status'
+        });
+    }
+}
+
+
+
+const adminDeleteUser = async (req, res, next) => {
+    try
+    {
+        let adminUser = req.user.email;
+        adminUser = await User.findOne({email:adminUser});
+
+        if (adminUser !== undefined && adminUser.isAdmin)
+        {
+            let userEmail = req.path.split('/');
+            userEmail = userEmail[userEmail.length - 1];
+
+            Logger.write('user', `Removing user: ${userEmail}`);
+
+            helperDeleteUser(userEmail)
+                .then(result =>
+                {
+                    if (result === 0) return res.status(200).json({
+                        code: 'REMOVAL_SUCCESSFUL',
+                        description: 'User removed.'
+                    });
+                    else return res.status(500).json({
+                        'code': 'SERVER_ERROR',
+                        'description': 'something went wrong, Please try again'
+                    });
+                });
+        }
+        else return res.status(500).json({
+            'code': 'SERVER_ERROR',
+            'description': 'something went wrong, Please try again'
+        });
+    }
+    catch(error)
+    {
+        Logger.write('user', `Error inside adminDeleteUser ${error}`, 2);
+
+        return res.status(500).json({
+            'code': 'SERVER_ERROR',
+            'description': 'something went wrong, Please try again'
+        });
+    }
+}
 /**
  * Find all user matches and rooms.
  * Delete the matches and rooms and also delete the
@@ -551,48 +685,7 @@ const deleteUser = async (req, res, next) =>
     }
 }
 
-const adminDeleteUser = async (req, res, next) =>
-{
-    try
-    {
-        let adminUser = req.user.email;
-        adminUser = await User.findOne({email:adminUser});
 
-        if (adminUser !== undefined && adminUser.isAdmin)
-        {
-            let userEmail = req.path.split('/');
-            userEmail = userEmail[userEmail.length - 1];
-
-            Logger.write('user', `Removing user: ${userEmail}`);
-
-            helperDeleteUser(userEmail)
-            .then(result => 
-            {
-                if (result === 0) return res.status(200).json({
-                                    code: 'REMOVAL_SUCCESSFUL',
-                                    description: 'User removed.'
-                                });
-                else return res.status(500).json({
-                    'code': 'SERVER_ERROR',
-                    'description': 'something went wrong, Please try again'
-                });
-            });
-        }
-        else return res.status(500).json({
-                'code': 'SERVER_ERROR',
-                'description': 'something went wrong, Please try again'
-            });
-    }
-    catch(error)
-    {
-        Logger.write('user', `Error inside adminDeleteUser ${error}`, 2);
-
-        return res.status(500).json({
-            'code': 'SERVER_ERROR',
-            'description': 'something went wrong, Please try again'
-        });
-    }
-}
 
 const helperDeleteUser = async (email) =>
 {
@@ -773,5 +866,7 @@ module.exports = {
     resetPasswordRequest:resetPasswordRequest,
     resetPasswordRequestCheck:resetPasswordRequestCheck,
     helperDeleteUser:helperDeleteUser,
-    setMatchingVisibility:setMatchingVisibility
+    setMatchingVisibility:setMatchingVisibility,
+    updateUserToAdmin:updateUserToAdmin,
+    removeAdminStatus:removeAdminStatus
 }

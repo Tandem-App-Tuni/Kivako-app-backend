@@ -36,7 +36,7 @@ const checkIfUserIsAuthenticatedAndAdmin = async (req, res, next) => {
 
     if (!req.isAuthenticated() || !isAdmin) {
         res.status(400).json({
-            'message': 'Acess Denied! You must been an Admin User or been logged to access this page!'
+            'message': 'Access Denied! You must been an Admin User or been logged to access this page!'
         });
     } else {
         return next();
