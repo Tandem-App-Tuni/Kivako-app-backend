@@ -30,9 +30,8 @@ module.exports = function () {
     var allowedOrigins = [frontEndURL, adminFrontEndURL, smlAuthenticationProvider];
     
     server.use(rateLimit({
-        /*Choose appropriate limits*/
         windowMs: 24 * 60 * 60 * 1000, //24 h in milliseconds
-        max: 5000,
+        max: 5000,  //number of allowed request in 24 h
         message: 'Too many requests. You have exceeded the request limit!',
         headers: true,
     }));
