@@ -166,8 +166,9 @@ module.exports = function () {
 
 
         // Connect to the MongoDB database using mongoose.
+        const connectionURI = process.env.DB_URL || db.database;
         mongoose.connect(
-            db.database, {
+            connectionURI, {
                 useNewUrlParser: true,
                 useCreateIndex: true,
                 useUnifiedTopology: true,
