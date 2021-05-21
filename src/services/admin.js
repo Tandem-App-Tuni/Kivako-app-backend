@@ -6,6 +6,7 @@ const User = require('../models/user');
 const Match = require('../models/match');
 var passwordHash = require('password-hash');
 const Logger = require('../logger');
+const e = require('express');
 
 const getLanguageStatitics = async (req, res, next) => 
 {
@@ -59,8 +60,6 @@ const getStudentUsers = async (req, res, next) =>
         let users = await User.find({
             "isAdmin": false
         }, {
-            languagesToTeach: 0,
-            languagesToLearn: 0,
             __v: 0,
             matches: 0
         });
@@ -80,7 +79,7 @@ const getMatches = async (req, res, next) =>
 {
     try
     {
-        let matches = await Match.find({}, {_id:0, requesterUser: 1, recipientUser: 1, status:1})
+        let matches = await Match.find({}, {_id:0, requesterUser: 1, recipientUser: 1, status:1, matchStartDate: 1})
                                  .populate('requesterUser', {_id:0, firstName:1, lastName:1, languagesToTeach:1, languagesToLearn:1, email:1})
                                  .populate('recipientUser', {_id:0, firstName:1, lastName:1, languagesToTeach:1, languagesToLearn:1, email:1});
 

@@ -1,3 +1,4 @@
+const rateLimit = require('express-rate-limit');
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
@@ -27,6 +28,14 @@ module.exports = function () {
         start;
 
     var allowedOrigins = [frontEndURL, adminFrontEndURL, smlAuthenticationProvider];
+    
+    server.use(rateLimit({
+        windowMs: 24 * 60 * 60 * 1000, //24 h in milliseconds
+        max: 5000,  //number of allowed request in 24 h
+        message: 'Too many requests. You have exceeded the request limit!',
+        headers: true,
+    }));
+    
     server.use(cors({
         credentials: true,
         origin: function (origin, callback) 
@@ -84,8 +93,6 @@ module.exports = function () {
             saveUninitialized: true
         });
         server.use(appSession);
-
-
         if (constants.localLoginStrategy) loginStrategy.createLocalLogin(server);
         else loginStrategy.createSAMLLogin(server);
 
@@ -166,8 +173,9 @@ module.exports = function () {
 
 
         // Connect to the MongoDB database using mongoose.
+        const connectionURI = process.env.DB_URL || db.database;
         mongoose.connect(
-            db.database, {
+            connectionURI, {
                 useNewUrlParser: true,
                 useCreateIndex: true,
                 useUnifiedTopology: true,
