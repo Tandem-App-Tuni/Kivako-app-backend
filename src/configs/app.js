@@ -40,7 +40,7 @@ module.exports = function () {
         credentials: true,
         origin: function (origin, callback) 
         {
-            console.log('Request origin:', origin);
+            // console.log('Request origin:', origin);
             // allow requests with no origin 
             // (like mobile apps or curl requests)
             if (!origin) return callback(null, true);
@@ -108,7 +108,7 @@ module.exports = function () {
 
         server.get('*', function (req, res, next) 
         {
-            console.log('Request was made to: ' + req.originalUrl);
+            // console.log('Request was made to: ' + req.originalUrl);
             return next();
         });
 
